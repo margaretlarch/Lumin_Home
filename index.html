@@ -1,24 +1,50 @@
 <!DOCTYPE html>
+
 <html lang="zh">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lumin Home</title>
+
+  <!-- 字体 -->
+
+  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Noto+Serif+SC&display=swap" rel="stylesheet">
+
+  <!-- PWA -->
+
   <link rel="manifest" href="manifest.json">
+
+  <!-- 样式 -->
+
   <link href="styles.css" rel="stylesheet" />
 </head>
+
 <body>
   <div id="app">
-    <div id="background"></div>
-    <div id="content"></div>
-    <nav class="tabbar">
-      <button onclick="switchTab('home')">HOME</button>
-      <button onclick="switchTab('play')">PLAY</button>
-      <button onclick="switchTab('memory')">MEMORY</button>
-      <button onclick="switchTab('footprint')">FOOTPRINT</button>
-      <button onclick="switchTab('settings')">SETTINGS</button>
-    </nav>
+
+```
+<!-- 背景层 -->
+<div id="background"></div>
+<div id="bg-overlay"></div>
+
+<!-- 内容 -->
+<div id="content"></div>
+
+<!-- 底部导航 -->
+<nav class="tabbar">
+  <button id="tab-home" onclick="switchTab('home')" class="active">HOME</button>
+  <button id="tab-play" onclick="switchTab('play')">PLAY</button>
+  <button id="tab-memory" onclick="switchTab('memory')">MEMORY</button>
+  <button id="tab-footprint" onclick="switchTab('footprint')">FOOTPRINT</button>
+  <button id="tab-settings" onclick="switchTab('settings')">SETTINGS</button>
+</nav>
+```
+
   </div>
+
+  <!-- 脚本 -->
+
   <script src="app.js"></script>
+
 </body>
 </html>
