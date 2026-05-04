@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lumin Home</title>
+  <link rel="manifest" href="manifest.json">
+  <link href="styles.css" rel="stylesheet" />
+</head>
+<body>
+  <div id="app">
+    <div id="background"></div>
+    <div id="content"></div>
+    <nav class="tabbar">
+      <button onclick="switchTab('home')">HOME</button>
+      <button onclick="switchTab('play')">PLAY</button>
+      <button onclick="switchTab('memory')">MEMORY</button>
+      <button onclick="switchTab('footprint')">FOOTPRINT</button>
+      <button onclick="switchTab('settings')">SETTINGS</button>
+    </nav>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+body,html {
+  margin:0;
+  padding:0;
+  font-family: serif;
+  color:#fff;
+}
+#background {
+  position:fixed;
+  width:100%;
+  height:100%;
+  background: linear-gradient(#0a1220, #121f33);
+  z-index:-1;
+}
+#content {
+  padding:20px;
+  padding-bottom:80px;
+}
+.card {
+  background: rgba(210,160,100,0.22);
+  backdrop-filter: blur(10px);
+  border-radius:10px;
+  padding:16px;
+  margin-bottom:16px;
+}
+.tabbar {
+  position:fixed;
+  bottom:0;
+  width:100%;
+  display:flex;
+}
+.tabbar button {
+  flex:1;
+  padding:12px;
+}
