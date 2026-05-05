@@ -11,26 +11,11 @@ function getTimePhase(hour) {
 
 /* ===== 背景配置 ===== */
 const BG_CONFIG = {
-  morning: {
-    img: 'assets/bg/morning.png',
-    overlay: 'rgba(255,200,180,0.15)'
-  },
-  day: {
-    img: 'assets/bg/day.png',
-    overlay: 'rgba(255,255,255,0.05)'
-  },
-  sunset: {
-    img: 'assets/bg/sunset.png',
-    overlay: 'rgba(255,140,80,0.2)'
-  },
-  night: {
-    img: 'assets/bg/night.png',
-    overlay: 'rgba(0,0,50,0.35)'
-  },
-  late: {
-    img: 'assets/bg/late.png',
-    overlay: 'rgba(0,0,0,0.55)'
-  }
+  morning: { img: 'assets/bg/morning.png', overlay: 'rgba(255,200,180,0.15)' },
+  day:     { img: 'assets/bg/day.png',     overlay: 'rgba(255,255,255,0.05)' },
+  sunset:  { img: 'assets/bg/sunset.png',  overlay: 'rgba(255,140,80,0.2)' },
+  night:   { img: 'assets/bg/night.png',   overlay: 'rgba(0,0,50,0.35)' },
+  late:    { img: 'assets/bg/late.png',     overlay: 'rgba(0,0,0,0.55)' }
 };
 
 /* ===== 更新背景 ===== */
@@ -42,12 +27,10 @@ function updateBackground() {
   } catch (e) {
     hour = new Date().getHours();
   }
-
   const phase = getTimePhase(hour);
   const bg = document.getElementById('background');
   const overlay = document.getElementById('bg-overlay');
   const config = BG_CONFIG[phase];
-
   bg.style.backgroundImage = `url(${config.img})`;
   overlay.style.background = config.overlay;
 }
@@ -55,10 +38,12 @@ function updateBackground() {
 /* ===== Tab 切换 ===== */
 function switchTab(tab) {
   currentTab = tab;
-  document.querySelectorAll('.tabbar button').forEach(btn => {
-    btn.classList.remove('active');
-  });
+  document.querySelectorAll('.tabbar button').forEach(btn => btn.classList.remove('active'));
   document.getElementById(`tab-${tab}`).classList.add('active');
+
+  const el = document.getElementById('content');
+  el.className = `tab-${tab}`;
+
   render();
 }
 
@@ -83,8 +68,7 @@ function render() {
         </div>
       </div>
 
-      <div class="card" style="position:relative; padding-left:20px;">
-        <div style="position:absolute; left:10px; top:14px; width:3px; height:calc(100% - 28px); background:rgba(245,215,161,0.3); border-radius:2px;"></div>
+      <div class="card card-whisper">
         <div class="card-label">TODAY'S WHISPER</div>
         <div class="card-body" style="font-style:italic;">待接入数据</div>
         <div class="card-sub">--</div>
@@ -93,12 +77,12 @@ function render() {
       <div class="card-grid">
         <div class="card">
           <div class="card-label">WEATHER</div>
-          <div class="card-body" style="font-family:'VT323',monospace; font-size:22px; color:rgba(245,215,161,0.8);">--</div>
+          <div class="card-num">--</div>
           <div class="card-sub" style="text-align:left;">待接入</div>
         </div>
         <div class="card">
           <div class="card-label">TOGETHER</div>
-          <div class="card-body" style="font-family:'VT323',monospace; font-size:22px; color:rgba(245,215,161,0.8);">--</div>
+          <div class="card-num">--</div>
           <div class="card-sub" style="text-align:left;">days</div>
         </div>
       </div>
@@ -121,7 +105,7 @@ function render() {
         <div class="play-card locked">
           <div class="play-card-icon">&#9878;</div>
           <div class="play-card-name">Tally</div>
-          <div class="play-card-desc">记账 · 扭蛋</div>
+          <div class="play-card-desc">记账 / 扭蛋</div>
         </div>
         <div class="play-card locked">
           <div class="play-card-icon">&#9776;</div>
@@ -185,7 +169,7 @@ function render() {
         <div class="card-label">SUPABASE</div>
         <div class="setting-label">URL</div>
         <input class="setting-input" id="cfg-url" value="${savedUrl}" placeholder="https://xxx.supabase.co" />
-        <div class="setting-label" style="margin-top:10px;">Anon Key</div>
+        <div class="setting-label">Anon Key</div>
         <input class="setting-input" id="cfg-key" value="${savedKey}" placeholder="eyJ..." />
       </div>
 
@@ -193,7 +177,7 @@ function render() {
         <div class="card-label">TIME & LOCATION</div>
         <div class="setting-label">时区</div>
         <input class="setting-input" id="cfg-tz" value="${savedTz}" placeholder="America/Los_Angeles" />
-        <div class="setting-label" style="margin-top:10px;">纪念日</div>
+        <div class="setting-label">纪念日</div>
         <input class="setting-input" id="cfg-anniversary" type="date" value="${savedAnniv}" />
       </div>
 
@@ -204,16 +188,10 @@ function render() {
 
 /* ===== 保存设置 ===== */
 function saveSettings() {
-  const url = document.getElementById('cfg-url').value;
-  const key = document.getElementById('cfg-key').value;
-  const tz = document.getElementById('cfg-tz').value;
-  const anniv = document.getElementById('cfg-anniversary').value;
-
-  localStorage.setItem('supabase_url', url);
-  localStorage.setItem('supabase_key', key);
-  localStorage.setItem('timezone', tz);
-  localStorage.setItem('anniversary', anniv);
-
+  localStorage.setItem('supabase_url', document.getElementById('cfg-url').value);
+  localStorage.setItem('supabase_key', document.getElementById('cfg-key').value);
+  localStorage.setItem('timezone', document.getElementById('cfg-tz').value);
+  localStorage.setItem('anniversary', document.getElementById('cfg-anniversary').value);
   updateBackground();
   alert('已保存');
 }
@@ -222,5 +200,8 @@ function saveSettings() {
 window.onload = () => {
   updateBackground();
   setInterval(updateBackground, 10 * 60 * 1000);
+
+  const el = document.getElementById('content');
+  el.className = 'tab-home';
   render();
 };
