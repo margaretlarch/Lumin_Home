@@ -1,11 +1,24 @@
+/* ===== 字体 ===== */
+@font-face {
+  font-family: 'Zpix';
+  src: url('assets/fonts/zpix.ttf') format('truetype');
+  font-display: swap;
+}
+
 /* ===== 全局 ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 html, body {
   margin: 0;
   padding: 0;
-  font-family: "Noto Serif SC", serif;
-  color: #f5f5f5;
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  color: #e8d8c0;
   background: transparent;
   overflow-x: hidden;
+  image-rendering: pixelated;
 }
 
 #app {
@@ -20,24 +33,20 @@ html, body {
   left: 0;
   width: 100%;
   height: 100%;
-
   background-size: cover;
   background-position: center bottom;
   background-repeat: no-repeat;
-  background-color: #0a1220;
-
+  background-color: #1a1408;
   transition: opacity 1.5s ease;
   z-index: 0;
 }
 
-/* 颜色滤镜层（昼夜调色） */
 #bg-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-
   background: transparent;
   transition: background 1.5s ease;
   z-index: 1;
@@ -48,78 +57,113 @@ html, body {
 #content {
   position: relative;
   z-index: 2;
-  padding: 20px 16px;
-  padding-top: 45vh;
-  padding-bottom: 90px;
+  padding: 16px 14px;
+  padding-bottom: 80px;
 }
 
-/* ===== 卡片 ===== */
+#content.tab-home {
+  padding-top: 42vh;
+}
+
+#content.tab-play,
+#content.tab-memory,
+#content.tab-footprint,
+#content.tab-settings {
+  padding-top: 16px;
+}
+
+/* ===== 卡片（B风格） ===== */
 .card {
-  background: rgba(210, 160, 100, 0.22);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(210, 160, 100, 0.15);
-  border-radius: 10px;
-  padding: 14px 16px;
-  margin-bottom: 12px;
+  background: rgba(210, 170, 120, 0.15);
+  border: 2px dashed rgba(210, 170, 120, 0.35);
+  padding: 12px 14px;
+  margin-bottom: 10px;
 }
 
 .card-label {
-  font-family: "VT323", monospace;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 2px;
-  color: rgba(245, 215, 161, 0.5);
+  color: #c8a870;
   margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-label::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #c8a870;
+  flex-shrink: 0;
 }
 
 .card-body {
-  font-size: 14px;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  line-height: 1.8;
+  color: #e8d8c0;
 }
 
 .card-sub {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.35);
+  font-size: 12px;
+  color: #8a7a60;
   margin-top: 6px;
   text-align: right;
+}
+
+.card-num {
+  font-size: 24px;
+  color: #e8c880;
+  line-height: 1;
+}
+
+/* whisper竖线 */
+.card-whisper {
+  position: relative;
+  padding-left: 18px;
+}
+
+.card-whisper::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 12px;
+  width: 3px;
+  height: calc(100% - 24px);
+  background: rgba(200, 168, 112, 0.4);
 }
 
 /* 小窗格两列 */
 .card-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 10px;
+  margin-bottom: 10px;
 }
 
 /* ===== Home 版头 ===== */
 .stats {
   display: flex;
   justify-content: space-around;
-  padding: 12px 0;
-  margin-bottom: 12px;
-  background: rgba(210, 160, 100, 0.18);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(210, 160, 100, 0.12);
-  border-radius: 10px;
+  padding: 10px 0;
+  margin-bottom: 10px;
+  background: rgba(210, 170, 120, 0.1);
+  border: 2px dashed rgba(210, 170, 120, 0.3);
 }
 
 .stat-num {
-  font-family: "VT323", monospace;
-  font-size: 26px;
-  color: rgba(245, 215, 161, 0.8);
+  font-size: 24px;
+  color: #e8c880;
   line-height: 1;
   text-align: center;
 }
 
 .stat-label {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  color: #8a7a60;
   text-align: center;
-  margin-top: 2px;
-  letter-spacing: 0.5px;
+  margin-top: 3px;
 }
 
 /* ===== Tab Bar ===== */
@@ -130,11 +174,9 @@ html, body {
   width: 100%;
   display: flex;
   justify-content: space-around;
-  padding: 8px 0 16px;
-  background: rgba(10, 18, 32, 0.75);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(245, 215, 161, 0.1);
+  padding: 6px 0 14px;
+  background: rgba(20, 16, 10, 0.85);
+  border-top: 2px solid rgba(210, 170, 120, 0.2);
   z-index: 10;
 }
 
@@ -143,8 +185,8 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  padding: 6px 0;
+  gap: 2px;
+  padding: 4px 0;
   background: transparent;
   border: none;
   cursor: pointer;
@@ -152,67 +194,59 @@ html, body {
 }
 
 .tab-icon {
-  font-family: "VT323", monospace;
-  font-size: 18px;
-  color: rgba(255, 255, 255, 0.35);
+  font-size: 14px;
+  color: #6a5a40;
   line-height: 1;
 }
 
 .tab-label {
-  font-family: "VT323", monospace;
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 1px;
-  color: rgba(255, 255, 255, 0.35);
+  color: #6a5a40;
 }
 
 .tabbar button.active .tab-icon,
 .tabbar button.active .tab-label {
-  color: rgba(245, 215, 161, 0.9);
+  color: #c8a870;
 }
 
-/* dimmed tab (footprint) */
 .tabbar button.dimmed .tab-icon,
 .tabbar button.dimmed .tab-label {
-  opacity: 0.4;
+  opacity: 0.35;
 }
 
 /* ===== Play 模块网格 ===== */
 .play-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
 }
 
 .play-card {
-  background: rgba(210, 160, 100, 0.22);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(210, 160, 100, 0.15);
-  border-radius: 10px;
-  padding: 20px 12px;
+  background: rgba(210, 170, 120, 0.15);
+  border: 2px dashed rgba(210, 170, 120, 0.35);
+  padding: 18px 10px;
   text-align: center;
 }
 
 .play-card.locked {
   opacity: 0.35;
-  border-style: dashed;
 }
 
 .play-card-icon {
-  font-family: "VT323", monospace;
   font-size: 24px;
-  color: rgba(245, 215, 161, 0.7);
+  color: #c8a870;
   margin-bottom: 6px;
 }
 
 .play-card-name {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  color: #e8d8c0;
 }
 
 .play-card-desc {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  color: #8a7a60;
   margin-top: 3px;
 }
 
@@ -221,17 +255,21 @@ html, body {
   display: flex;
   gap: 6px;
   overflow-x: auto;
-  padding-bottom: 10px;
-  margin-bottom: 12px;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.filter-bar::-webkit-scrollbar {
+  display: none;
 }
 
 .filter-btn {
-  padding: 4px 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(245, 215, 161, 0.25);
+  padding: 4px 10px;
+  border: 2px solid rgba(210, 170, 120, 0.25);
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
-  font-family: "VT323", monospace;
+  color: #8a7a60;
+  font-family: 'Zpix', monospace;
   font-size: 12px;
   white-space: nowrap;
   cursor: pointer;
@@ -239,44 +277,36 @@ html, body {
 }
 
 .filter-btn.active {
-  background: rgba(245, 215, 161, 0.15);
-  color: rgba(245, 215, 161, 0.9);
-  border-color: rgba(245, 215, 161, 0.4);
+  background: rgba(210, 170, 120, 0.15);
+  color: #c8a870;
+  border-color: rgba(210, 170, 120, 0.5);
 }
 
 /* ===== Settings ===== */
-.setting-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 14px;
-}
-
 .setting-label {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 12px;
+  color: #c8a870;
+  margin-top: 10px;
+  margin-bottom: 4px;
 }
 
-.setting-value {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
+.setting-label:first-of-type {
+  margin-top: 0;
 }
 
 .setting-input {
   width: 100%;
-  padding: 8px 12px;
-  margin-top: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(245, 215, 161, 0.2);
-  border-radius: 6px;
-  color: #f5f5f5;
-  font-family: "VT323", monospace;
-  font-size: 14px;
+  padding: 8px 10px;
+  background: rgba(210, 170, 120, 0.08);
+  border: 2px solid rgba(210, 170, 120, 0.25);
+  color: #e8d8c0;
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
   outline: none;
 }
 
 .setting-input:focus {
-  border-color: rgba(245, 215, 161, 0.5);
+  border-color: rgba(210, 170, 120, 0.5);
 }
 
 .save-btn {
@@ -284,19 +314,18 @@ html, body {
   width: 100%;
   margin-top: 12px;
   padding: 10px;
-  background: rgba(245, 215, 161, 0.15);
-  border: 1px solid rgba(245, 215, 161, 0.3);
-  border-radius: 8px;
-  color: rgba(245, 215, 161, 0.9);
-  font-family: "VT323", monospace;
-  font-size: 14px;
+  background: rgba(210, 170, 120, 0.12);
+  border: 2px dashed rgba(210, 170, 120, 0.4);
+  color: #c8a870;
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
   letter-spacing: 2px;
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .save-btn:active {
-  background: rgba(245, 215, 161, 0.25);
+  background: rgba(210, 170, 120, 0.25);
 }
 
 /* ===== 空状态 ===== */
@@ -306,20 +335,19 @@ html, body {
 }
 
 .empty-icon {
-  font-family: "VT323", monospace;
-  font-size: 36px;
-  color: rgba(245, 215, 161, 0.3);
+  font-size: 24px;
+  color: #6a5a40;
   margin-bottom: 12px;
 }
 
 .empty-title {
-  font-size: 15px;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  color: #c8a870;
   margin-bottom: 8px;
 }
 
 .empty-desc {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.3);
-  line-height: 1.6;
+  color: #8a7a60;
+  line-height: 1.8;
 }
