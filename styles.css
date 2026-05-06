@@ -74,8 +74,8 @@ html, body {
 
 /* ===== 卡片（B风格） ===== */
 .card {
-  background: rgba(210, 170, 120, 0.22);
-  border: 2px dashed rgba(210, 170, 120, 0.35);
+  background: rgba(210, 170, 120, 0.35);
+  border: 2px dashed rgba(210, 170, 120, 0.45);
   padding: 12px 14px;
   margin-bottom: 10px;
 }
