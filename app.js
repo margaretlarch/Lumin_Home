@@ -1,9 +1,5 @@
 /* ================================================================
-   Lumin Home — app.js (Phase 2 集成点歌模块)
-   在 Phase 1 基础上增加：
-   - Play 解锁点歌卡片
-   - 点歌子页面 (jukebox)
-   - Home 页 LAST SONG 自动加载完整信息
+   Lumin Home — app.js (Phase 2 & 3 集成点歌/记账/共读模块)
    ================================================================ */
 
 let currentTab = 'home';
@@ -105,16 +101,13 @@ function updateWeatherFx(weather) {
 
   var type = weather ? getWeatherType(weather.icon) : 'clear';
 
-  // 没变化就不重建
   if (type === currentWeatherType) return;
   currentWeatherType = type;
 
-  // 清空
   fxEl.innerHTML = '';
   fxEl.className = '';
 
   if (type === 'clear' || type === 'clouds') {
-    // 多云只加一个淡灰覆盖class
     if (type === 'clouds') fxEl.className = 'wx-clouds';
     return;
   }
@@ -124,7 +117,6 @@ function updateWeatherFx(weather) {
     return;
   }
 
-  // 雨 / 暴风雨
   if (type === 'rain' || type === 'storm') {
     fxEl.className = 'wx-rain';
     var count = type === 'storm' ? 50 : 35;
@@ -140,7 +132,6 @@ function updateWeatherFx(weather) {
     return;
   }
 
-  // 雪
   if (type === 'snow') {
     fxEl.className = 'wx-snow';
     var html = '';
@@ -209,7 +200,6 @@ async function toggleWhisperHistory() {
   if (!wEl) return;
 
   if (!whisperExpanded) {
-    // 收起——重新渲染只显示最新一条
     var latest = await fetchWhisper();
     if (latest) {
       wEl.innerHTML =
@@ -220,10 +210,9 @@ async function toggleWhisperHistory() {
     return;
   }
 
-  // 展开——加载历史
   wEl.innerHTML =
     '<div class="card-label">WHISPERS</div>' +
-    '<div class="card-body whisper-loading">\u00B7\u00B7\u00B7</div>';
+    '<div class="card-body whisper-loading">···</div>';
 
   var history = await fetchWhisperHistory(20);
   if (!history.length) {
@@ -246,7 +235,6 @@ async function toggleWhisperHistory() {
     '<div class="card-sub">点击收起</div>';
 }
 
-// 原有 fetchLastSong 保留，备用（Phase 2 中 Home 改用 loadLatestSong）
 async function fetchLastSong() {
   if (!sb) return null;
   try {
@@ -349,24 +337,24 @@ async function render() {
   }
 }
 
-/* ===== Home (Phase 2 改进 LAST SONG 卡片) ===== */
+/* ===== Home ===== */
 
 async function renderHome(el) {
   var days = getDaysTogether();
   el.innerHTML =
     '<div class="stats">' +
       '<div><div class="stat-num" id="h-days">' + days + '</div><div class="stat-label">days</div></div>' +
-      '<div><div class="stat-num" id="h-mem">\u00B7\u00B7\u00B7</div><div class="stat-label">memories</div></div>' +
-      '<div><div class="stat-num" id="h-songs">\u00B7\u00B7\u00B7</div><div class="stat-label">songs</div></div>' +
+      '<div><div class="stat-num" id="h-mem">···</div><div class="stat-label">memories</div></div>' +
+      '<div><div class="stat-num" id="h-songs">···</div><div class="stat-label">songs</div></div>' +
     '</div>' +
     '<div class="card card-whisper" id="h-whisper" onclick="toggleWhisperHistory()">' +
       '<div class="card-label">TODAY\'S WHISPER</div>' +
-      '<div class="card-body">\u00B7\u00B7\u00B7</div>' +
+      '<div class="card-body">···</div>' +
     '</div>' +
     '<div class="card-grid">' +
       '<div class="card" id="h-weather">' +
         '<div class="card-label">WEATHER</div>' +
-        '<div class="card-num">\u00B7\u00B7\u00B7</div>' +
+        '<div class="card-num">···</div>' +
       '</div>' +
       '<div class="card">' +
         '<div class="card-label">TOGETHER</div>' +
@@ -374,10 +362,9 @@ async function renderHome(el) {
         '<div class="card-sub" style="text-align:left">days</div>' +
       '</div>' +
     '</div>' +
-    // LAST SONG 卡片保留 id="h-song"，由 loadLatestSong 填充
     '<div class="card last-song-card" id="h-song">' +
       '<div class="card-label">LAST SONG</div>' +
-      '<div class="card-body">\u00B7\u00B7\u00B7</div>' +
+      '<div class="card-body">···</div>' +
     '</div>';
 
   if (!sb) {
@@ -389,7 +376,6 @@ async function renderHome(el) {
     return;
   }
 
-  // 并行加载除最新歌曲外的所有数据
   var results = await Promise.all([
     fetchCount('memories'),
     fetchCount('songs'),
@@ -416,7 +402,7 @@ async function renderHome(el) {
   if (weather) {
     wtEl.innerHTML =
       '<div class="card-label">WEATHER</div>' +
-      '<div class="card-num">' + weather.temp + '\u00B0C</div>' +
+      '<div class="card-num">' + weather.temp + '°C</div>' +
       '<div class="card-sub" style="text-align:left">' + weather.desc + '</div>';
     updateWeatherFx(weather);
   } else {
@@ -424,31 +410,34 @@ async function renderHome(el) {
     updateWeatherFx(null);
   }
 
-  // Phase 2: 使用独立函数加载最新一首歌，展示完整信息
   await loadLatestSong();
 }
 
-/* ===== Play (Phase 2 解锁点歌) ===== */
+/* ===== Play ===== */
 
 function renderPlay(el) {
   el.innerHTML =
     '<div class="play-grid">' +
-      // 点歌卡片已解锁
       '<div class="play-card" onclick="openPlayModule(\'jukebox\')">' +
         '<div class="play-card-icon">&#9835;</div>' +
         '<div class="play-card-name">点歌</div>' +
         '<div class="play-card-desc">推歌记录</div>' +
       '</div>' +
-      // 其他模块仍锁定
-      '<div class="play-card locked"><div class="play-card-icon">&#9878;</div><div class="play-card-name">Tally</div><div class="play-card-desc">记账 / 扭蛋</div></div>' +
-      '<div class="play-card locked"><div class="play-card-icon">&#9776;</div><div class="play-card-name">共读</div><div class="play-card-desc">Catchword</div></div>' +
+      '<div class="play-card" onclick="openPlayModule(\'tally\')">' +
+        '<div class="play-card-icon">&#9878;</div>' +
+        '<div class="play-card-name">Tally</div>' +
+        '<div class="play-card-desc">记账 / 扭蛋</div>' +
+      '</div>' +
+      '<div class="play-card" onclick="openPlayModule(\'reading\')">' +
+        '<div class="play-card-icon">&#9776;</div>' +
+        '<div class="play-card-name">共读</div>' +
+        '<div class="play-card-desc">Catchword</div>' +
+      '</div>' +
       '<div class="play-card locked"><div class="play-card-icon">&#9836;</div><div class="play-card-name">弹琴</div><div class="play-card-desc">Overtone</div></div>' +
       '<div class="play-card locked"><div class="play-card-icon">&#9113;</div><div class="play-card-name">咕咕机</div><div class="play-card-desc">打印小纸条</div></div>' +
       '<div class="play-card locked"><div class="play-card-icon">+</div><div class="play-card-name">更多</div><div class="play-card-desc">即将到来</div></div>' +
     '</div>';
 }
-
-/* ===== Play 子页面路由 ===== */
 
 function openPlayModule(name) {
   var el = document.getElementById('content');
@@ -458,22 +447,11 @@ function openPlayModule(name) {
     case 'jukebox':
       renderJukebox(el);
       break;
-    // 其他模块暂为占位
     case 'tally':
-      el.innerHTML =
-        '<div class="sub-header">' +
-          '<button class="back-btn" onclick="switchTab(\'play\')">&lt; 返回</button>' +
-          '<span class="sub-title">记账</span>' +
-        '</div>' +
-        '<div style="text-align:center;padding:60px 0;font-family:\'Zpix\',monospace;font-size:11px;color:#8a7a60;letter-spacing:2px;">即将上线…</div>';
+      renderTally(el);
       break;
     case 'reading':
-      el.innerHTML =
-        '<div class="sub-header">' +
-          '<button class="back-btn" onclick="switchTab(\'play\')">&lt; 返回</button>' +
-          '<span class="sub-title">共读</span>' +
-        '</div>' +
-        '<div style="text-align:center;padding:60px 0;font-family:\'Zpix\',monospace;font-size:11px;color:#8a7a60;letter-spacing:2px;">即将上线…</div>';
+      renderReadingHome(el);
       break;
     case 'piano':
       el.innerHTML =
@@ -496,7 +474,7 @@ function openPlayModule(name) {
   }
 }
 
-/* ===== 点歌子页面 ===== */
+/* ===== 点歌子页面（Phase 2） ===== */
 
 function renderJukebox(el) {
   el.innerHTML =
@@ -566,7 +544,7 @@ async function loadJukeboxData() {
 }
 
 function buildSongCardHTML(song, index, total) {
-  var displayNumber = total - index; // 最新的是最大号
+  var displayNumber = total - index;
   var numberStr = String(displayNumber).padStart(2, '0');
   var safeTitle = escHtml(song.title || '未知歌曲');
   var safeArtist = escHtml(song.artist || '未知歌手');
@@ -619,7 +597,7 @@ function buildSongCardHTML(song, index, total) {
   );
 }
 
-/* ===== Home 最新歌曲独立加载（Phase 2 新增） ===== */
+/* ===== Home LAST SONG 独立加载 ===== */
 
 async function loadLatestSong() {
   var cardEl = document.getElementById('h-song');
@@ -697,7 +675,7 @@ async function loadLatestSong() {
   }
 }
 
-/* ===== Memory (保持不变) ===== */
+/* ===== Memory ===== */
 
 async function renderMemory(el) {
   var filterHtml = MEM_CATEGORIES.map(function(c) {
@@ -707,7 +685,7 @@ async function renderMemory(el) {
   el.innerHTML =
     '<div class="filter-bar">' + filterHtml + '</div>' +
     '<div class="search-bar"><input class="search-input" id="mem-search" type="text" placeholder="搜索记忆..." value="' + escHtml(memSearch) + '" /></div>' +
-    '<div id="mem-list" class="mem-list"><div class="mem-loading">\u00B7\u00B7\u00B7</div></div>';
+    '<div id="mem-list" class="mem-list"><div class="mem-loading">···</div></div>';
 
   var searchInput = document.getElementById('mem-search');
   var searchTimer = null;
@@ -729,7 +707,7 @@ async function refreshMemories() {
     listEl.innerHTML = '<div class="mem-empty">请先在 Settings 中连接 Supabase</div>';
     return;
   }
-  listEl.innerHTML = '<div class="mem-loading">加载中\u00B7\u00B7\u00B7</div>';
+  listEl.innerHTML = '<div class="mem-loading">加载中···</div>';
   await loadMemories();
   if (memData.length === 0) {
     listEl.innerHTML = '<div class="mem-empty">暂无记忆</div>';
@@ -738,7 +716,7 @@ async function refreshMemories() {
   listEl.innerHTML = memData.map(function(m) {
     var isExp = memExpanded === m.id;
     var preview = m.content.length > 80 && !isExp ? m.content.slice(0, 80) + '...' : m.content;
-    var tags = m.tags ? (Array.isArray(m.tags) ? m.tags : [m.tags]).join(' \u00B7 ') : '';
+    var tags = m.tags ? (Array.isArray(m.tags) ? m.tags : [m.tags]).join(' · ') : '';
     return '<div class="mem-card' + (isExp ? ' expanded' : '') + '" onclick="toggleMemory(\'' + m.id + '\')">' +
       '<div class="mem-meta"><span class="mem-cat">' + (m.category || '') + '</span><span class="mem-date">' + formatDate(m.created_at) + '</span></div>' +
       '<div class="mem-content">' + escHtml(preview) + '</div>' +
@@ -761,7 +739,7 @@ function toggleMemory(id) {
   refreshMemories();
 }
 
-/* ===== Footprint (占位) ===== */
+/* ===== Footprint（占位） ===== */
 
 function renderFootprint(el) {
   el.innerHTML =
@@ -772,7 +750,7 @@ function renderFootprint(el) {
     '</div>';
 }
 
-/* ===== Settings (保持不变) ===== */
+/* ===== Settings ===== */
 
 function renderSettings(el) {
   var v = function(k) { return localStorage.getItem(k) || ''; };
@@ -846,7 +824,7 @@ async function saveSettings() {
     st.textContent = '正在测试连接...';
     st.className = 'conn-status checking';
     var r = await testSupabaseConnection();
-    st.textContent = (r.ok ? '\u2713 ' : '\u2717 ') + r.msg;
+    st.textContent = (r.ok ? '✓ ' : '✗ ') + r.msg;
     st.className = 'conn-status ' + (r.ok ? 'ok' : 'fail');
   }
 }
@@ -859,6 +837,460 @@ function escHtml(s) {
   d.textContent = String(s);
   return d.innerHTML;
 }
+
+/* ================================================================
+   Phase 3 — Tally 记账模块
+   ================================================================ */
+
+async function renderTally(el) {
+  el.innerHTML =
+    '<div class="sub-header">' +
+      '<button class="back-btn" onclick="switchTab(\'play\')">&lt; 返回</button>' +
+      '<span class="sub-title">&#9878; 记账</span>' +
+      '<span class="sub-count" id="tally-balance">余额: --</span>' +
+    '</div>' +
+    '<div class="tally-form">' +
+      '<div class="tally-form-row">' +
+        '<select id="tally-type" class="tally-select"><option value="expense">支出</option><option value="income">收入</option></select>' +
+        '<input id="tally-amount" class="tally-input" type="number" placeholder="金额" step="0.01" min="0.01" />' +
+      '</div>' +
+      '<input id="tally-cat" class="tally-input" type="text" placeholder="分类（可选）" />' +
+      '<input id="tally-note" class="tally-input" type="text" placeholder="备注（可选）" />' +
+      '<input id="tally-date" class="tally-input" type="date" />' +
+      '<button class="tally-save-btn" onclick="saveTallyRecord()">记一笔</button>' +
+    '</div>' +
+    '<div id="tally-list"></div>';
+
+  document.getElementById('tally-date').value = getNow().toISOString().split('T')[0];
+  loadTallyData();
+}
+
+async function loadTallyData() {
+  var listEl = document.getElementById('tally-list');
+  var balEl = document.getElementById('tally-balance');
+  if (!listEl || !balEl) return;
+  if (!sb) { listEl.innerHTML = '<div class="tally-empty">请先配置 Supabase</div>'; return; }
+
+  try {
+    var { data, error } = await sb
+      .from('tally_records')
+      .select('*')
+      .order('date', { ascending: false })
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+
+    var records = data || [];
+    var income = 0, expense = 0;
+    records.forEach(r => {
+      var amt = parseFloat(r.amount) || 0;
+      if (r.type === 'income') income += amt;
+      else expense += amt;
+    });
+    var balance = income - expense;
+    balEl.textContent = '余额: ¥' + balance.toFixed(2);
+
+    if (records.length === 0) {
+      listEl.innerHTML = '<div class="tally-empty">还没有记账记录</div>';
+      return;
+    }
+
+    listEl.innerHTML = records.map(r => {
+      var amt = parseFloat(r.amount).toFixed(2);
+      var sign = r.type === 'income' ? '+' : '-';
+      var cat = r.category ? ' [' + escHtml(r.category) + ']' : '';
+      var note = r.note ? ' · ' + escHtml(r.note) : '';
+      return '<div class="tally-item">' +
+        '<span class="tally-type ' + (r.type === 'income' ? 'income' : 'expense') + '">' + sign + ' ¥' + amt + '</span>' +
+        '<span class="tally-desc">' + cat + note + '</span>' +
+        '<span class="tally-date">' + formatDate(r.date) + '</span>' +
+      '</div>';
+    }).join('');
+
+  } catch (e) {
+    console.error('load tally:', e);
+    listEl.innerHTML = '<div class="tally-error">加载失败</div>';
+  }
+}
+
+async function saveTallyRecord() {
+  var type = document.getElementById('tally-type').value;
+  var amount = parseFloat(document.getElementById('tally-amount').value);
+  var category = document.getElementById('tally-cat').value.trim();
+  var note = document.getElementById('tally-note').value.trim();
+  var date = document.getElementById('tally-date').value;
+  if (!amount || amount <= 0) { alert('请输入金额'); return; }
+  if (!sb) { alert('未连接 Supabase'); return; }
+
+  try {
+    var { error } = await sb.from('tally_records').insert([{
+      type, amount, category: category || null, note: note || null, date
+    }]);
+    if (error) throw error;
+    document.getElementById('tally-amount').value = '';
+    document.getElementById('tally-cat').value = '';
+    document.getElementById('tally-note').value = '';
+    loadTallyData();
+  } catch (e) {
+    console.error('save tally:', e);
+    alert('保存失败: ' + e.message);
+  }
+}
+
+
+/* ================================================================
+   Phase 3 — Reading 共读模块
+   ================================================================ */
+
+let currentBookId = null;
+let currentChapterNum = null;
+
+async function renderReadingHome(el) {
+  el.innerHTML =
+    '<div class="sub-header">' +
+      '<button class="back-btn" onclick="switchTab(\'play\')">&lt; 返回</button>' +
+      '<span class="sub-title">&#9776; 共读</span>' +
+      '<span class="sub-count" id="reading-book-count"></span>' +
+    '</div>' +
+    '<div class="reading-filter-bar">' +
+      '<button class="reading-filter-btn active" data-filter="all">全部</button>' +
+      '<button class="reading-filter-btn" data-filter="reading">在读</button>' +
+      '<button class="reading-filter-btn" data-filter="finished">已读完</button>' +
+      '<button class="reading-filter-btn" data-filter="paused">暂停</button>' +
+    '</div>' +
+    '<div id="reading-book-list"></div>' +
+    '<button class="reading-add-btn" onclick="renderAddBook(document.getElementById(\'content\'))">+ 添加新书</button>';
+
+  var filterBar = el.querySelector('.reading-filter-bar');
+  filterBar.addEventListener('click', function(e) {
+    if (e.target.classList.contains('reading-filter-btn')) {
+      filterBar.querySelectorAll('.reading-filter-btn').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+      loadReadingBooks(e.target.dataset.filter);
+    }
+  });
+  loadReadingBooks('all');
+}
+
+async function loadReadingBooks(filter) {
+  var listEl = document.getElementById('reading-book-list');
+  var countEl = document.getElementById('reading-book-count');
+  if (!listEl) return;
+  if (!sb) { listEl.innerHTML = '<div class="empty-state">请先配置 Supabase</div>'; return; }
+
+  try {
+    var query = sb.from('reading_books').select('*').order('updated_at', { ascending: false });
+    if (filter !== 'all') query = query.eq('status', filter);
+    var { data, error } = await query;
+    if (error) throw error;
+    var books = data || [];
+    if (countEl) countEl.textContent = books.length + ' 本';
+    if (books.length === 0) {
+      listEl.innerHTML = '<div class="empty-state"><div class="empty-desc">书架空空，添加一本新书吧</div></div>';
+      return;
+    }
+    listEl.innerHTML = books.map(book => {
+      var progress = book.total_chapters > 0 ? Math.round((book.current_chapter / book.total_chapters) * 100) : 0;
+      return '<div class="reading-book-card" onclick="openBook(\'' + book.id + '\')">' +
+        '<div class="book-cover">' + (book.cover_emoji || '📖') + '</div>' +
+        '<div class="book-info">' +
+          '<div class="book-title">' + escHtml(book.title) + '</div>' +
+          '<div class="book-author">' + escHtml(book.author || '') + '</div>' +
+          '<div class="book-progress-bar"><div class="book-progress-fill" style="width:' + progress + '%"></div></div>' +
+          '<div class="book-progress-text">' + book.current_chapter + '/' + book.total_chapters + ' 章</div>' +
+        '</div>' +
+        '<div class="book-status">' + (book.status === 'reading' ? '在读' : book.status === 'finished' ? '已读完' : '暂停') + '</div>' +
+      '</div>';
+    }).join('');
+  } catch (e) {
+    console.error('reading books:', e);
+    listEl.innerHTML = '<div class="empty-state">加载失败</div>';
+  }
+}
+
+function openBook(bookId) {
+  currentBookId = bookId;
+  currentChapterNum = null;
+  renderReadingBook(document.getElementById('content'), bookId);
+}
+
+async function renderReadingBook(el, bookId) {
+  if (!sb) { el.innerHTML = '请先配置 Supabase'; return; }
+  var { data: book, error } = await sb.from('reading_books').select('*').eq('id', bookId).single();
+  if (error || !book) {
+    el.innerHTML = '<div class="sub-header"><button class="back-btn" onclick="renderReadingHome(document.getElementById(\'content\'))">&lt; 返回</button><span class="sub-title">书籍未找到</span></div>';
+    return;
+  }
+  var chapterNum = currentChapterNum || book.current_chapter || 1;
+  var { data: chapters, error: chErr } = await sb.from('reading_chapters').select('*').eq('book_id', bookId).eq('chapter_num', chapterNum).maybeSingle();
+  if (chErr) { console.error(chErr); }
+  var chapterContent = chapters ? chapters.content : '';
+  var chapterTitle = chapters ? chapters.chapter_title : ('第' + chapterNum + '章');
+  var wordCount = chapters ? chapters.word_count : 0;
+
+  el.innerHTML =
+    '<div class="sub-header">' +
+      '<button class="back-btn" onclick="renderReadingHome(document.getElementById(\'content\'))">书架</button>' +
+      '<span class="sub-title">' + escHtml(book.title) + '</span>' +
+      '<button class="back-btn" onclick="openChapterList(\'' + bookId + '\')">目录</button>' +
+    '</div>' +
+    '<div class="reading-chapter-info">' +
+      '<span id="reading-chapter-title">' + escHtml(chapterTitle) + '</span>' +
+      '<span id="reading-word-count">' + wordCount + ' 字</span>' +
+    '</div>' +
+    '<div id="reading-content" class="reading-content">' +
+      (chapterContent ? '<div class="chapter-text">' + escHtml(chapterContent).replace(/\n/g, '<br>') + '</div>' : '<div class="chapter-empty">本章暂无内容，点击编辑添加</div>') +
+    '</div>' +
+    '<div class="reading-nav">' +
+      '<button id="prev-chapter" ' + (chapterNum <= 1 ? 'disabled' : '') + '>上一章</button>' +
+      '<span class="reading-chapter-indicator">' + chapterNum + ' / ' + book.total_chapters + '</span>' +
+      '<button id="next-chapter" ' + (chapterNum >= book.total_chapters ? 'disabled' : '') + '>下一章</button>' +
+    '</div>' +
+    '<div class="reading-actions">' +
+      '<button class="reading-action-btn" onclick="editChapter(\'' + bookId + '\', ' + chapterNum + ')">编辑本章</button>' +
+      '<button class="reading-action-btn" onclick="addNote(\'' + bookId + '\', ' + chapterNum + ')">添加笔记</button>' +
+    '</div>' +
+    '<div id="reading-notes" class="reading-notes"></div>';
+
+  document.getElementById('prev-chapter').addEventListener('click', function() { navigateChapter(bookId, chapterNum - 1); });
+  document.getElementById('next-chapter').addEventListener('click', function() { navigateChapter(bookId, chapterNum + 1); });
+  loadReadingNotes(bookId, chapterNum);
+  currentChapterNum = chapterNum;
+}
+
+function navigateChapter(bookId, newChapter) {
+  currentChapterNum = newChapter;
+  renderReadingBook(document.getElementById('content'), bookId);
+}
+
+async function loadReadingNotes(bookId, chapterNum) {
+  var notesEl = document.getElementById('reading-notes');
+  if (!notesEl) return;
+  if (!sb) return;
+  var { data, error } = await sb.from('reading_notes').select('*').eq('book_id', bookId).eq('chapter_num', chapterNum).order('created_at', { ascending: true });
+  if (error) { console.error(error); return; }
+  if (!data || data.length === 0) {
+    notesEl.innerHTML = '';
+    return;
+  }
+  notesEl.innerHTML = '<div class="notes-title">笔记</div>' + data.map(n =>
+    '<div class="note-item"><div class="note-quote">“' + escHtml(n.quote || '') + '”</div><div class="note-text">' + escHtml(n.note || '') + '</div></div>'
+  ).join('');
+}
+
+function editChapter(bookId, chapterNum) {
+  var contentEl = document.getElementById('reading-content');
+  if (!contentEl) return;
+  var currentText = contentEl.querySelector('.chapter-text') ? contentEl.querySelector('.chapter-text').innerText : '';
+  contentEl.innerHTML =
+    '<textarea id="chapter-editor" class="chapter-editor">' + escHtml(currentText) + '</textarea>' +
+    '<button class="reading-action-btn" onclick="saveChapter(\'' + bookId + '\', ' + chapterNum + ')">保存</button>';
+}
+
+async function saveChapter(bookId, chapterNum) {
+  var textarea = document.getElementById('chapter-editor');
+  if (!textarea) return;
+  var content = textarea.value;
+  var wordCount = content.replace(/\s/g, '').length;
+  if (!sb) { alert('未连接 Supabase'); return; }
+
+  var { data: existing } = await sb.from('reading_chapters').select('id').eq('book_id', bookId).eq('chapter_num', chapterNum).maybeSingle();
+  if (existing) {
+    var { error } = await sb.from('reading_chapters').update({ content, word_count: wordCount }).eq('id', existing.id);
+    if (error) { alert('更新失败'); return; }
+  } else {
+    var { error } = await sb.from('reading_chapters').insert([{ book_id: bookId, chapter_num: chapterNum, content, word_count: wordCount }]);
+    if (error) { alert('添加失败'); return; }
+  }
+
+  var { data: book } = await sb.from('reading_books').select('current_chapter').eq('id', bookId).single();
+  if (book && chapterNum > book.current_chapter) {
+    await sb.from('reading_books').update({ current_chapter: chapterNum, updated_at: new Date().toISOString() }).eq('id', bookId);
+  } else {
+    await sb.from('reading_books').update({ updated_at: new Date().toISOString() }).eq('id', bookId);
+  }
+
+  currentChapterNum = chapterNum;
+  renderReadingBook(document.getElementById('content'), bookId);
+}
+
+function addNote(bookId, chapterNum) {
+  var selection = window.getSelection().toString().trim();
+  if (!selection) { alert('请先选中一段文字'); return; }
+  var note = prompt('输入你的批注:');
+  if (note === null) return;
+  saveNote(bookId, chapterNum, selection, note);
+}
+
+async function saveNote(bookId, chapterNum, quote, note) {
+  if (!sb) { alert('未连接'); return; }
+  var { error } = await sb.from('reading_notes').insert([{ book_id: bookId, chapter_num: chapterNum, quote, note }]);
+  if (error) { alert('保存失败: ' + error.message); return; }
+  loadReadingNotes(bookId, chapterNum);
+}
+
+async function openChapterList(bookId) {
+  var el = document.getElementById('content');
+  if (!sb) return;
+  var { data: chapters, error } = await sb.from('reading_chapters').select('chapter_num, chapter_title').eq('book_id', bookId).order('chapter_num');
+  if (error) { console.error(error); return; }
+  var html = '<div class="sub-header"><button class="back-btn" onclick="openBook(\'' + bookId + '\')">返回</button><span class="sub-title">目录</span></div>';
+  html += '<div class="chapter-list">';
+  if (!chapters || chapters.length === 0) {
+    html += '<div class="empty-desc">暂无章节</div>';
+  } else {
+    chapters.forEach(ch => {
+      html += '<div class="chapter-item" onclick="navigateChapter(\'' + bookId + '\', ' + ch.chapter_num + ')">第' + ch.chapter_num + '章 ' + escHtml(ch.chapter_title || '') + '</div>';
+    });
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+/* ---------- 添加新书 ---------- */
+function renderAddBook(el) {
+  el.innerHTML =
+    '<div class="sub-header">' +
+      '<button class="back-btn" onclick="renderReadingHome(document.getElementById(\'content\'))">&lt; 返回</button>' +
+      '<span class="sub-title">添加新书</span>' +
+    '</div>' +
+    '<div class="add-book-form">' +
+      '<div class="tab-bar-add">' +
+        '<button class="add-tab active" onclick="showAddMethod(\'manual\')">手动添加</button>' +
+        '<button class="add-tab" onclick="showAddMethod(\'upload\')">上传文件</button>' +
+      '</div>' +
+      '<div id="add-manual">' +
+        '<input id="new-book-title" placeholder="书名" class="tally-input" />' +
+        '<input id="new-book-author" placeholder="作者（可选）" class="tally-input" />' +
+        '<input id="new-book-chapters" type="number" placeholder="总章节数" class="tally-input" min="1" value="1" />' +
+        '<input id="new-book-emoji" placeholder="封面 emoji（可选）" class="tally-input" maxlength="2" />' +
+        '<button onclick="createManualBook()" class="tally-save-btn">创建</button>' +
+      '</div>' +
+      '<div id="add-upload" style="display:none">' +
+        '<input type="file" id="upload-book-file" accept=".txt,.epub" class="tally-input" />' +
+        '<button onclick="uploadAndCreateBook()" class="tally-save-btn">上传并创建</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function showAddMethod(method) {
+  document.querySelectorAll('.add-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('add-manual').style.display = method === 'manual' ? 'block' : 'none';
+  document.getElementById('add-upload').style.display = method === 'upload' ? 'block' : 'none';
+}
+
+async function createManualBook() {
+  var title = document.getElementById('new-book-title').value.trim();
+  var author = document.getElementById('new-book-author').value.trim();
+  var total = parseInt(document.getElementById('new-book-chapters').value) || 1;
+  var emoji = document.getElementById('new-book-emoji').value.trim() || '📖';
+  if (!title) { alert('请输入书名'); return; }
+  if (!sb) { alert('未连接 Supabase'); return; }
+  var { data, error } = await sb.from('reading_books').insert([{ title, author: author || null, total_chapters: total, cover_emoji: emoji }]).select();
+  if (error) { alert('创建失败: ' + error.message); return; }
+  openBook(data[0].id);
+}
+
+async function uploadAndCreateBook() {
+  var fileInput = document.getElementById('upload-book-file');
+  var file = fileInput.files[0];
+  if (!file) { alert('请选择文件'); return; }
+  if (!sb) { alert('未连接 Supabase'); return; }
+  var title = file.name.replace(/\.[^/.]+$/, "");
+  try {
+    var chapters;
+    if (file.name.endsWith('.epub')) {
+      if (typeof JSZip === 'undefined') { alert('缺少 JSZip，请检查 CDN 引入'); return; }
+      chapters = await parseEpub(file);
+    } else {
+      var text = await readFileAsText(file);
+      chapters = parseChapters(text);
+    }
+    if (!chapters || chapters.length === 0) { alert('未能识别任何章节'); return; }
+
+    var { data: bookData, error: bookErr } = await sb.from('reading_books').insert([{ title, total_chapters: chapters.length, cover_emoji: '📖' }]).select();
+    if (bookErr) throw bookErr;
+    var bookId = bookData[0].id;
+    for (var i = 0; i < chapters.length; i++) {
+      var ch = chapters[i];
+      var wc = ch.content.replace(/\s/g, '').length;
+      await sb.from('reading_chapters').insert([{ book_id: bookId, chapter_num: i + 1, chapter_title: ch.title, content: ch.content, word_count: wc }]);
+    }
+    alert('导入成功！共 ' + chapters.length + ' 章');
+    openBook(bookId);
+  } catch (e) {
+    console.error(e);
+    alert('导入失败: ' + e.message);
+  }
+}
+
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    var reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsText(file, 'UTF-8');
+  });
+}
+
+function parseChapters(text) {
+  var pattern = /^第[一二三四五六七八九十百千\d]+[章节回]/m;
+  var lines = text.split(/\r?\n/);
+  var chapters = [];
+  var currentTitle = null;
+  var currentContent = [];
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (pattern.test(line)) {
+      if (currentTitle !== null) chapters.push({ title: currentTitle, content: currentContent.join('\n').trim() });
+      currentTitle = line;
+      currentContent = [];
+    } else if (currentTitle !== null) {
+      currentContent.push(line);
+    }
+  }
+  if (currentTitle !== null) chapters.push({ title: currentTitle, content: currentContent.join('\n').trim() });
+  return chapters;
+}
+
+async function parseEpub(file) {
+  var zip = await JSZip.loadAsync(file);
+  var containerFile = zip.file("META-INF/container.xml");
+  if (!containerFile) throw new Error("无效 ePub");
+  var containerText = await containerFile.async("text");
+  var rootMatch = containerText.match(/full-path="([^"]+)"/);
+  if (!rootMatch) throw new Error("无法解析 container.xml");
+  var opfPath = rootMatch[1];
+  var opfFile = zip.file(opfPath);
+  if (!opfFile) throw new Error("未找到 OPF");
+  var opfText = await opfFile.async("text");
+
+  var idrefs = [];
+  var spineMatches = opfText.matchAll(/<itemref\s+[^>]*idref="([^"]+)"/g);
+  for (var m of spineMatches) idrefs.push(m[1]);
+
+  var manifestItems = {};
+  var itemMatches = opfText.matchAll(/<item\s+[^>]*id="([^"]+)"[^>]*href="([^"]+)"[^>]*media-type="([^"]+)"/g);
+  for (var m2 of itemMatches) manifestItems[m2[1]] = { href: m2[2], type: m2[3] };
+
+  var basePath = opfPath.substring(0, opfPath.lastIndexOf('/') + 1);
+  var chapters = [];
+  for (var i = 0; i < idrefs.length; i++) {
+    var idref = idrefs[i];
+    var item = manifestItems[idref];
+    if (!item || (item.type !== 'application/xhtml+xml' && item.type !== 'text/html')) continue;
+    var fullHref = basePath + item.href;
+    var htmlFile = zip.file(fullHref);
+    if (!htmlFile) continue;
+    var htmlText = await htmlFile.async("text");
+    var parser = new DOMParser();
+    var doc = parser.parseFromString(htmlText, "text/html");
+    var bodyText = doc.body ? doc.body.innerText : '';
+    chapters.push({ title: doc.title || ('第' + (i+1) + '章'), content: bodyText.trim() });
+  }
+  return chapters;
+}
+
 
 /* ===== 初始化 ===== */
 
