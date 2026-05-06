@@ -903,6 +903,7 @@ async function loadTallyData() {
         '<span class="tally-type ' + (r.type === 'income' ? 'income' : 'expense') + '">' + sign + ' ¥' + amt + '</span>' +
         '<span class="tally-desc">' + cat + note + '</span>' +
         '<span class="tally-date">' + formatDate(r.date) + '</span>' +
+        '<button class="delete-btn-small" onclick="deleteTallyRecord(\'' + r.id + '\')">删</button>' +
       '</div>';
     }).join('');
 
@@ -933,6 +934,19 @@ async function saveTallyRecord() {
   } catch (e) {
     console.error('save tally:', e);
     alert('保存失败: ' + e.message);
+  }
+}
+
+async function deleteTallyRecord(id) {
+  if (!confirm('删除这条记录？')) return;
+  if (!sb) return;
+  try {
+    var { error } = await sb.from('tally_records').delete().eq('id', id);
+    if (error) throw error;
+    loadTallyData();
+  } catch (e) {
+    console.error('delete tally:', e);
+    alert('删除失败: ' + e.message);
   }
 }
 
@@ -998,7 +1012,10 @@ async function loadReadingBooks(filter) {
           '<div class="book-progress-bar"><div class="book-progress-fill" style="width:' + progress + '%"></div></div>' +
           '<div class="book-progress-text">' + book.current_chapter + '/' + book.total_chapters + ' 章</div>' +
         '</div>' +
-        '<div class="book-status">' + (book.status === 'reading' ? '在读' : book.status === 'finished' ? '已读完' : '暂停') + '</div>' +
+        '<div class="book-card-actions">' +
+          '<div class="book-status">' + (book.status === 'reading' ? '在读' : book.status === 'finished' ? '已读完' : '暂停') + '</div>' +
+          '<button class="delete-btn-small" onclick="event.stopPropagation();deleteBook(\'' + book.id + '\',\'' + escHtml(book.title).replace(/'/g, "\\'") + '\')">删除</button>' +
+        '</div>' +
       '</div>';
     }).join('');
   } catch (e) {
@@ -1011,6 +1028,20 @@ function openBook(bookId) {
   currentBookId = bookId;
   currentChapterNum = null;
   renderReadingBook(document.getElementById('content'), bookId);
+}
+
+async function deleteBook(bookId, title) {
+  if (!confirm('确定删除「' + title + '」？所有章节和笔记都会一起删除。')) return;
+  if (!sb) return;
+  try {
+    // 外键设了 ON DELETE CASCADE，只需删 books 行
+    var { error } = await sb.from('reading_books').delete().eq('id', bookId);
+    if (error) throw error;
+    renderReadingHome(document.getElementById('content'));
+  } catch (e) {
+    console.error('delete book:', e);
+    alert('删除失败: ' + e.message);
+  }
 }
 
 async function renderReadingBook(el, bookId) {
@@ -1234,22 +1265,86 @@ function readFileAsText(file) {
 }
 
 function parseChapters(text) {
-  var pattern = /^第[一二三四五六七八九十百千\d]+[章节回]/m;
+  // 去 BOM
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+
   var lines = text.split(/\r?\n/);
-  var chapters = [];
-  var currentTitle = null;
-  var currentContent = [];
-  for (var i = 0; i < lines.length; i++) {
-    var line = lines[i].trim();
-    if (pattern.test(line)) {
-      if (currentTitle !== null) chapters.push({ title: currentTitle, content: currentContent.join('\n').trim() });
-      currentTitle = line;
-      currentContent = [];
-    } else if (currentTitle !== null) {
-      currentContent.push(line);
+
+  // 多种章节标题格式，按优先级尝试
+  var patterns = [
+    /^第[一二三四五六七八九十百千万零两\d]+[章节回]\s*/,           // 第X章/节/回
+    /^第[一二三四五六七八九十百千万零两\d]+[卷部篇集]\s*/,         // 第X卷/部/篇/集
+    /^[Cc]hapter\s+\d+/,                                         // Chapter 1
+    /^[序楔终]章/,                                                // 序章/楔章/终章
+    /^[楔]子/,                                                    // 楔子
+    /^[卷][一二三四五六七八九十百千万零两\d]+/,                     // 卷一
+    /^【第?[一二三四五六七八九十百千万零两\d]+[章节回】]/,           // 【第X章】
+    /^\d{1,4}[、.．]\s*/,                                         // 1、 或 1. 开头
+  ];
+
+  // 找到第一个能匹配到至少2个章节的 pattern
+  var bestPattern = null;
+  var bestCount = 0;
+  for (var p = 0; p < patterns.length; p++) {
+    var count = 0;
+    for (var i = 0; i < lines.length; i++) {
+      if (patterns[p].test(lines[i].trim())) count++;
+    }
+    if (count >= 2 && count > bestCount) {
+      bestPattern = patterns[p];
+      bestCount = count;
     }
   }
-  if (currentTitle !== null) chapters.push({ title: currentTitle, content: currentContent.join('\n').trim() });
+
+  if (bestPattern) {
+    // 用最佳 pattern 切分
+    var chapters = [];
+    var currentTitle = null;
+    var currentContent = [];
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (bestPattern.test(line)) {
+        if (currentTitle !== null) chapters.push({ title: currentTitle, content: currentContent.join('\n').trim() });
+        currentTitle = line;
+        currentContent = [];
+      } else {
+        if (currentTitle !== null) {
+          currentContent.push(line);
+        } else if (chapters.length === 0 && line) {
+          // 第一个章节标题前的内容 → 存为"前言"
+          if (!currentContent.length) currentTitle = '前言';
+          currentContent.push(line);
+        }
+      }
+    }
+    if (currentTitle !== null) chapters.push({ title: currentTitle, content: currentContent.join('\n').trim() });
+    if (chapters.length > 0) return chapters;
+  }
+
+  // 降级：按固定字数切（约 3000 字一章）
+  var fullText = lines.join('\n').trim();
+  if (!fullText) return [];
+  var chunkSize = 3000;
+  var chapters = [];
+  var pos = 0;
+  var chNum = 1;
+  while (pos < fullText.length) {
+    var end = Math.min(pos + chunkSize, fullText.length);
+    // 尽量在段落边界切
+    if (end < fullText.length) {
+      var breakPoint = fullText.lastIndexOf('\n\n', end);
+      if (breakPoint > pos + chunkSize * 0.5) end = breakPoint;
+      else {
+        breakPoint = fullText.lastIndexOf('\n', end);
+        if (breakPoint > pos + chunkSize * 0.5) end = breakPoint;
+      }
+    }
+    chapters.push({ title: '第' + chNum + '节', content: fullText.slice(pos, end).trim() });
+    pos = end;
+    chNum++;
+    // 跳过切分点的空行
+    while (pos < fullText.length && fullText[pos] === '\n') pos++;
+  }
   return chapters;
 }
 
