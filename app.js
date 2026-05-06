@@ -482,3 +482,394 @@ window.onload = function() {
   setInterval(updateBackground, 10 * 60 * 1000);
   render();
 };
+
+/* ============================================
+   app.js — Phase 2 推歌模块新增/修改代码
+   追加到现有 app.js 中，部分函数需要修改
+   ============================================ */
+
+/* ==========================================
+   1. 修改 renderPlay() — 解锁点歌卡片
+   ========================================== */
+// 在现有的 renderPlay(el) 函数中，找到点歌卡片对应的 HTML，
+// 将 locked class 和相关 locked 标记移除，改为可点击。
+//
+// 点歌卡片的 HTML 参考（替换原有的 locked 卡片）：
+//
+// '<div class="play-card" onclick="openPlayModule(\'jukebox\')">' +
+//   '<div class="play-card-icon">&#9835;</div>' +
+//   '<div class="play-card-name">点歌</div>' +
+//   '<div class="play-card-desc">推歌记录</div>' +
+// '</div>'
+//
+// 如果原卡片是 locked 状态，去掉类似下面的内容：
+//   class="play-card locked"
+//   以及卡片内部的 locked 图标/文字
+
+
+/* ==========================================
+   2. 新增 openPlayModule() — 子页面路由
+   ========================================== */
+/**
+ * 打开 Play 模块的子页面
+ * @param {string} name - 模块名称：'jukebox' | 'tally' | 'reading' | 'piano' | 'memobird'
+ */
+function openPlayModule(name) {
+  var el = document.getElementById('content');
+  if (!el) return;
+
+  switch (name) {
+    case 'jukebox':
+      renderJukebox(el);
+      break;
+    // 以下模块 Phase 3 实现，暂时占位
+    case 'tally':
+      el.innerHTML =
+        '<div class="sub-header">' +
+          '<button class="back-btn" onclick="switchTab(\'play\')">&lt; 返回</button>' +
+          '<span class="sub-title">记账</span>' +
+        '</div>' +
+        '<div style="text-align:center;padding:60px 0;font-family:\'Zpix\',monospace;font-size:11px;color:rgba(200,180,150,0.3);letter-spacing:2px;">即将上线…</div>';
+      break;
+    case 'reading':
+      el.innerHTML =
+        '<div class="sub-header">' +
+          '<button class="back-btn" onclick="switchTab(\'play\')">&lt; 返回</button>' +
+          '<span class="sub-title">共读</span>' +
+        '</div>' +
+        '<div style="text-align:center;padding:60px 0;font-family:\'Zpix\',monospace;font-size:11px;color:rgba(200,180,150,0.3);letter-spacing:2px;">即将上线…</div>';
+      break;
+    case 'piano':
+      el.innerHTML =
+        '<div class="sub-header">' +
+          '<button class="back-btn" onclick="switchTab(\'play\')">&lt; 返回</button>' +
+          '<span class="sub-title">弹琴</span>' +
+        '</div>' +
+        '<div style="text-align:center;padding:60px 0;font-family:\'Zpix\',monospace;font-size:11px;color:rgba(200,180,150,0.3);letter-spacing:2px;">即将上线…</div>';
+      break;
+    case 'memobird':
+      el.innerHTML =
+        '<div class="sub-header">' +
+          '<button class="back-btn" onclick="switchTab(\'play\')">&lt; 返回</button>' +
+          '<span class="sub-title">咕咕机</span>' +
+        '</div>' +
+        '<div style="text-align:center;padding:60px 0;font-family:\'Zpix\',monospace;font-size:11px;color:rgba(200,180,150,0.3);letter-spacing:2px;">即将上线…</div>';
+      break;
+    default:
+      switchTab('play');
+  }
+}
+
+
+/* ==========================================
+   3. 新增 renderJukebox() — 点歌子页面
+   ========================================== */
+/**
+ * 渲染点歌子页面（推歌历史列表）
+ * @param {HTMLElement} el - #content 容器
+ */
+function renderJukebox(el) {
+  el.innerHTML =
+    '<div class="sub-header">' +
+      '<button class="back-btn" onclick="switchTab(\'play\')">&lt; 返回</button>' +
+      '<span class="sub-title">&#9835; 点歌</span>' +
+      '<span class="sub-count" id="jukebox-count"></span>' +
+    '</div>' +
+    '<div id="jukebox-list">' +
+      '<div class="jukebox-loading">推歌正在涌来…</div>' +
+    '</div>';
+
+  loadJukeboxData();
+}
+
+
+/* ==========================================
+   4. 新增 loadJukeboxData() — 加载歌曲数据
+   ========================================== */
+/**
+ * 从 Supabase 加载推歌数据并渲染
+ */
+async function loadJukeboxData() {
+  var listEl = document.getElementById('jukebox-list');
+  var countEl = document.getElementById('jukebox-count');
+  if (!listEl) return;
+
+  // 检查 Supabase 是否已初始化
+  if (typeof sb === 'undefined' || !sb) {
+    listEl.innerHTML =
+      '<div class="jukebox-error">' +
+        '<p>请先在设置中配置 Supabase 连接</p>' +
+        '<button class="jukebox-retry-btn" onclick="switchTab(\'settings\')">前往设置</button>' +
+      '</div>';
+    return;
+  }
+
+  try {
+    var result = await sb
+      .from('songs')
+      .select('*')
+      .order('date', { ascending: false })
+      .order('created_at', { ascending: false });
+
+    if (result.error) throw result.error;
+
+    var songs = result.data || [];
+
+    // 更新计数
+    if (countEl) {
+      countEl.textContent = songs.length + ' 首';
+    }
+
+    // 空状态
+    if (songs.length === 0) {
+      listEl.innerHTML =
+        '<div class="jukebox-empty">' +
+          '还没有推歌<br>让 Lumin 帮你挑选一首吧' +
+        '</div>';
+      return;
+    }
+
+    // 渲染歌曲列表
+    listEl.innerHTML = songs
+      .map(function (song, index) {
+        return buildSongCardHTML(song, index, songs.length);
+      })
+      .join('');
+
+  } catch (err) {
+    console.error('加载推歌数据失败:', err);
+    listEl.innerHTML =
+      '<div class="jukebox-error">' +
+        '<p>加载失败，请稍后重试</p>' +
+        '<button class="jukebox-retry-btn" onclick="loadJukeboxData()">重新加载</button>' +
+      '</div>';
+  }
+}
+
+
+/* ==========================================
+   5. 新增 buildSongCardHTML() — 构建歌曲卡片
+   ========================================== */
+/**
+ * 构建单首歌曲卡片的 HTML
+ * @param {Object} song - 歌曲数据
+ * @param {number} index - 在列表中的索引（从0开始）
+ * @param {number} total - 列表总数
+ * @returns {string} HTML 字符串
+ */
+function buildSongCardHTML(song, index, total) {
+  var displayNumber = total - index; // 倒序编号：最新的是最大号
+  var numberStr = String(displayNumber).padStart(2, '0');
+  var safeTitle = escHtml(song.title || '未知歌曲');
+  var safeArtist = escHtml(song.artist || '未知歌手');
+  var safeReason = escHtml(song.reason || '');
+  var safeMood = escHtml(song.mood || '');
+  var safeUrl = escHtml(song.url || '#');
+  var formattedDate = formatDate(song.date); // Phase 1 已有函数
+
+  // 如果 url 不是有效链接，降级为 #
+  var hasValidUrl = song.url && /^https?:\/\//.test(song.url);
+
+  var html = '';
+
+  // mood 标签
+  if (safeMood) {
+    html += '<div class="song-mood-tag">' + safeMood + '</div>';
+  }
+
+  // 歌名 + 歌手
+  html += '<div class="song-card-header">';
+  if (hasValidUrl) {
+    html +=
+      '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="song-title-link">' +
+        safeTitle +
+      '</a>';
+  } else {
+    html += '<span class="song-title-link" style="border-bottom:none;cursor:default;">' + safeTitle + '</span>';
+  }
+  html += '<span class="song-artist">— ' + safeArtist + '</span>';
+  html += '</div>';
+
+  // 推歌理由
+  if (safeReason) {
+    html += '<p class="song-reason">' + safeReason + '</p>';
+  }
+
+  // 底部：日期 + 外链按钮
+  html += '<div class="song-card-footer">';
+  html += '<span class="song-date">' + formattedDate + '</span>';
+  if (hasValidUrl) {
+    html +=
+      '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="song-ext-link">' +
+        '<svg viewBox="0 0 24 24" fill="currentColor">' +
+          '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>' +
+        '</svg>' +
+        '网易云' +
+      '</a>';
+  }
+
+  html += '</div>';
+
+  // 用卡片包裹
+  return (
+    '<div class="song-card" style="animation-delay:' + (index * 0.08) + 's">' +
+      '<div class="song-card-index">' + numberStr + '</div>' +
+      html +
+    '</div>'
+  );
+}
+
+
+/* ==========================================
+   6. 新增 loadLatestSong() — 加载最新一首歌（供 Home 页使用）
+   ========================================== */
+/**
+ * 查询 songs 表最新一首歌，更新 Home 页 LAST SONG 卡片
+ * 在 renderHome() 的数据加载流程中调用此函数
+ */
+async function loadLatestSong() {
+  var cardEl = document.getElementById('last-song-card');
+  if (!cardEl) return;
+
+  // 检查 Supabase 是否已初始化
+  if (typeof sb === 'undefined' || !sb) {
+    cardEl.innerHTML =
+      '<div class="last-song-placeholder">' +
+        '请先在设置中配置 Supabase' +
+      '</div>';
+    return;
+  }
+
+  try {
+    var result = await sb
+      .from('songs')
+      .select('*')
+      .order('date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (result.error) throw result.error;
+
+    var songs = result.data || [];
+
+    if (songs.length === 0) {
+      // 无数据时保持占位
+      cardEl.innerHTML =
+        '<div class="last-song-placeholder">' +
+          '还没有推歌记录' +
+        '</div>';
+      return;
+    }
+
+    var song = songs[0];
+    var safeTitle = escHtml(song.title || '未知歌曲');
+    var safeArtist = escHtml(song.artist || '未知歌手');
+    var safeReason = escHtml(song.reason || '');
+    var safeUrl = escHtml(song.url || '#');
+    var hasValidUrl = song.url && /^https?:\/\//.test(song.url);
+    var formattedDate = formatDate(song.date);
+
+    var html = '';
+
+    // 歌名 + 歌手
+    html += '<div class="song-card-header">';
+    if (hasValidUrl) {
+      html +=
+        '<a href="' + safeUrl + '" target="_blank" rel="noopener noreferrer" class="song-title-link">' +
+          safeTitle +
+        '</a>';
+    } else {
+      html += '<span class="song-title-link" style="border-bottom:none;cursor:default;">' + safeTitle + '</span>';
+    }
+    html += '<span class="song-artist">— ' + safeArtist + '</span>';
+    html += '</div>';
+
+    // 推歌理由
+    if (safeReason) {
+      html += '<p class="song-reason">' + safeReason + '</p>';
+    }
+
+    // 底部日期
+    html +=
+      '<div class="song-card-footer">' +
+        '<span class="song-date">' + formattedDate + '</span>' +
+      '</div>';
+
+    cardEl.innerHTML = html;
+
+  } catch (err) {
+    console.error('加载最新推歌失败:', err);
+    cardEl.innerHTML =
+      '<div class="last-song-placeholder">' +
+        '加载失败' +
+      '</div>';
+  }
+}
+
+
+/* ==========================================
+   7. 修改 renderHome() — 集成 loadLatestSong()
+   ========================================== */
+// 在现有的 renderHome(el) 函数中：
+//
+// 步骤 A：确保 LAST SONG 卡片容器有 id="last-song-card"
+//   将其 HTML 改为：
+//   '<div class="last-song-card" id="last-song-card">' +
+//     '<div class="last-song-placeholder">加载中…</div>' +
+//   '</div>'
+//
+// 步骤 B：在 renderHome 的数据加载完成后调用 loadLatestSong()
+//   例如在 Promise.all 或所有 await 之后添加：
+//   loadLatestSong();
+//
+// 如果 renderHome 使用 .then() 链式调用，在最后的 .then() 中调用。
+
+
+/* ==========================================
+   8. 辅助函数确保存在（Phase 1 已有，这里仅作参考）
+   ========================================== */
+// 以下函数在 Phase 1 的 app.js 中应该已存在。
+// 如果不存在，请添加：
+
+/**
+ * HTML 转义，防止 XSS
+ * @param {string} s
+ * @returns {string}
+ */
+function escHtml(s) {
+  if (!s) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * 格式化 ISO 日期为 MM-DD
+ * @param {string} iso - ISO 日期字符串
+ * @returns {string}
+ */
+function formatDate(iso) {
+  if (!iso) return '--';
+  try {
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '--';
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    return m + '-' + day;
+  } catch (e) {
+    return '--';
+  }
+}
+
+/**
+ * 切换底部 Tab
+ * @param {string} tab - 'home' | 'play' | 'memory' | 'footprint' | 'settings'
+ */
+function switchTab(tab) {
+  // Phase 1 已实现，此处为占位说明
+  // 该函数应更新底部导航高亮，并调用对应的 renderXxx(document.getElementById('content'))
+  console.log('switchTab:', tab);
+}
