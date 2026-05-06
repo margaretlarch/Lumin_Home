@@ -756,3 +756,75 @@ select.setting-input {
   background: rgba(210, 170, 120, 0.15);
   border-color: rgba(210, 170, 120, 0.5);
 }
+
+/* ===== 天气视觉效果 ===== */
+#weather-fx {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* 多云：淡灰覆盖 */
+.wx-clouds {
+  background: rgba(80, 80, 100, 0.15);
+  transition: background 2s ease;
+}
+
+/* 雾/霾：模糊覆盖 */
+.wx-mist {
+  background: rgba(180, 170, 150, 0.12);
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
+  transition: background 2s ease;
+}
+
+/* 雨滴 */
+.wx-drop {
+  position: absolute;
+  top: -20px;
+  width: 1px;
+  height: 18px;
+  background: linear-gradient(to bottom, transparent, rgba(200, 210, 230, 0.5));
+  animation: wxRainFall 0.5s linear infinite;
+}
+
+@keyframes wxRainFall {
+  0% {
+    transform: translateY(-20px);
+  }
+  100% {
+    transform: translateY(calc(100vh + 20px));
+  }
+}
+
+/* 雪花 */
+.wx-flake {
+  position: absolute;
+  top: -10px;
+  border-radius: 50%;
+  background: rgba(240, 240, 255, 0.7);
+  animation: wxSnowFall 4s linear infinite;
+}
+
+@keyframes wxSnowFall {
+  0% {
+    transform: translateY(-10px) translateX(0);
+  }
+  25% {
+    transform: translateY(25vh) translateX(8px);
+  }
+  50% {
+    transform: translateY(50vh) translateX(-5px);
+  }
+  75% {
+    transform: translateY(75vh) translateX(10px);
+  }
+  100% {
+    transform: translateY(calc(100vh + 10px)) translateX(3px);
+  }
+}
