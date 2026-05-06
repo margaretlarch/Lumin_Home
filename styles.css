@@ -62,7 +62,7 @@ html, body {
 }
 
 #content.tab-home {
-  padding-top: 42vh;
+  padding-top: 16px;
 }
 
 #content.tab-play,
@@ -74,7 +74,7 @@ html, body {
 
 /* ===== 卡片（B风格） ===== */
 .card {
-  background: rgba(210, 170, 120, 0.15);
+  background: rgba(210, 170, 120, 0.22);
   border: 2px dashed rgba(210, 170, 120, 0.35);
   padding: 12px 14px;
   margin-bottom: 10px;
@@ -148,7 +148,7 @@ html, body {
   justify-content: space-around;
   padding: 10px 0;
   margin-bottom: 10px;
-  background: rgba(210, 170, 120, 0.1);
+  background: rgba(210, 170, 120, 0.18);
   border: 2px dashed rgba(210, 170, 120, 0.3);
 }
 
@@ -223,7 +223,7 @@ html, body {
 }
 
 .play-card {
-  background: rgba(210, 170, 120, 0.15);
+  background: rgba(210, 170, 120, 0.22);
   border: 2px dashed rgba(210, 170, 120, 0.35);
   padding: 18px 10px;
   text-align: center;
@@ -277,7 +277,7 @@ html, body {
 }
 
 .filter-btn.active {
-  background: rgba(210, 170, 120, 0.15);
+  background: rgba(210, 170, 120, 0.22);
   color: #c8a870;
   border-color: rgba(210, 170, 120, 0.5);
 }
