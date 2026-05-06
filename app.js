@@ -733,3 +733,4 @@ window.onload = function() {
   setInterval(updateBackground, 10 * 60 * 1000);
   render();
 };
+ 
