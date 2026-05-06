@@ -351,3 +351,131 @@ html, body {
   color: #8a7a60;
   line-height: 1.8;
 }
+
+/* ===== 搜索框 ===== */
+.search-bar {
+  margin-bottom: 10px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: rgba(210, 170, 120, 0.08);
+  border: 2px solid rgba(210, 170, 120, 0.25);
+  color: #e8d8c0;
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: rgba(210, 170, 120, 0.5);
+}
+
+.search-input::placeholder {
+  color: #6a5a40;
+}
+
+/* ===== Memory 列表 ===== */
+.mem-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mem-loading,
+.mem-empty {
+  text-align: center;
+  color: #8a7a60;
+  padding: 30px 0;
+  font-size: 12px;
+}
+
+.mem-card {
+  background: rgba(210, 170, 120, 0.22);
+  border: 2px dashed rgba(210, 170, 120, 0.3);
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.mem-card:active {
+  background: rgba(210, 170, 120, 0.35);
+}
+
+.mem-card.expanded {
+  background: rgba(210, 170, 120, 0.3);
+  border-color: rgba(210, 170, 120, 0.5);
+}
+
+.mem-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.mem-cat {
+  font-size: 12px;
+  color: #c8a870;
+  letter-spacing: 1px;
+}
+
+.mem-date {
+  font-size: 12px;
+  color: #8a7a60;
+}
+
+.mem-content {
+  font-size: 12px;
+  color: #e8d8c0;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.mem-tags {
+  font-size: 12px;
+  color: #8a7a60;
+  margin-top: 6px;
+}
+
+/* ===== 连接状态 ===== */
+.conn-status {
+  font-size: 12px;
+  margin-top: 8px;
+  padding: 6px 8px;
+  line-height: 1.5;
+}
+
+.conn-status.checking {
+  color: #b8a880;
+}
+
+.conn-status.ok {
+  color: #8abd6a;
+}
+
+.conn-status.fail {
+  color: #d48a6a;
+}
+
+/* ===== Song Link ===== */
+.song-link {
+  color: #e8c880;
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(210, 170, 120, 0.4);
+}
+
+.song-link:active {
+  color: #f5e0a0;
+}
+
+/* ===== Select 下拉框 ===== */
+select.setting-input {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238a7a60'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
