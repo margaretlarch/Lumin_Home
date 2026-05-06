@@ -1,6 +1,42 @@
-let currentTab = 'home';
+/* ================================================================
+   Lumin Home — app.js
+   Phase 1 数据层：Supabase 连接 + Home 数据绑定 + Memory 完整功能
+   ================================================================ */
 
-/* ===== 昼夜时间映射 ===== */
+let currentTab = 'home';
+let sb = null;
+
+/* ===== Supabase 初始化 ===== */
+
+function initSupabase() {
+  const url = localStorage.getItem('supabase_url');
+  const key = localStorage.getItem('supabase_key');
+  if (!url || !key) return false;
+  try {
+    sb = window.supabase.createClient(url, key);
+    return true;
+  } catch (e) {
+    console.error('Supabase init error:', e);
+    sb = null;
+    return false;
+  }
+}
+
+/* ===== 时间工具 ===== */
+
+function getTimezone() {
+  return localStorage.getItem('timezone') || 'America/Los_Angeles';
+}
+
+function getNow() {
+  try {
+    const s = new Date().toLocaleString('en-US', { timeZone: getTimezone() });
+    return new Date(s);
+  } catch (e) {
+    return new Date();
+  }
+}
+
 function getTimePhase(hour) {
   if (hour >= 5 && hour < 8) return 'morning';
   if (hour >= 8 && hour < 16) return 'day';
@@ -9,7 +45,25 @@ function getTimePhase(hour) {
   return 'late';
 }
 
-/* ===== 背景配置 ===== */
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return mm + '-' + dd;
+}
+
+function getDaysTogether() {
+  const anniv = localStorage.getItem('anniversary');
+  if (!anniv) return '--';
+  const start = new Date(anniv + 'T00:00:00');
+  const now = getNow();
+  const diff = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+  return diff >= 0 ? diff : '--';
+}
+
+/* ===== 背景系统 ===== */
+
 const BG_CONFIG = {
   morning: { img: 'assets/bg/morning.png', overlay: 'rgba(255,200,180,0.15)' },
   day:     { img: 'assets/bg/day.png',     overlay: 'rgba(255,255,255,0.05)' },
@@ -18,190 +72,413 @@ const BG_CONFIG = {
   late:    { img: 'assets/bg/late.png',     overlay: 'rgba(0,0,0,0.55)' }
 };
 
-/* ===== 更新背景 ===== */
 function updateBackground() {
-  const tz = localStorage.getItem('timezone') || 'America/Los_Angeles';
-  let hour;
-  try {
-    hour = parseInt(new Date().toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: tz }));
-  } catch (e) {
-    hour = new Date().getHours();
-  }
-  const phase = getTimePhase(hour);
-  const bg = document.getElementById('background');
-  const overlay = document.getElementById('bg-overlay');
+  const now = getNow();
+  const phase = getTimePhase(now.getHours());
   const config = BG_CONFIG[phase];
-  bg.style.backgroundImage = `url(${config.img})`;
-  overlay.style.background = config.overlay;
+  document.getElementById('background').style.backgroundImage = 'url(' + config.img + ')';
+  document.getElementById('bg-overlay').style.background = config.overlay;
+}
+
+/* ===== 数据读取 ===== */
+
+async function fetchCount(table) {
+  if (!sb) return '--';
+  try {
+    const { count, error } = await sb.from(table).select('*', { count: 'exact', head: true });
+    if (error) throw error;
+    return count != null ? count : 0;
+  } catch (e) {
+    console.error('count(' + table + '):', e);
+    return '--';
+  }
+}
+
+async function fetchWhisper() {
+  if (!sb) return null;
+  try {
+    const { data, error } = await sb
+      .from('whispers')
+      .select('content, date, created_at')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (error) throw error;
+    return data && data[0] ? data[0] : null;
+  } catch (e) {
+    console.error('whisper:', e);
+    return null;
+  }
+}
+
+async function fetchLastSong() {
+  if (!sb) return null;
+  try {
+    const { data, error } = await sb
+      .from('songs')
+      .select('title, artist, url, reason, created_at')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (error) throw error;
+    return data && data[0] ? data[0] : null;
+  } catch (e) {
+    console.error('song:', e);
+    return null;
+  }
+}
+
+async function fetchWeather() {
+  const apiKey = localStorage.getItem('weather_api_key');
+  const lat = localStorage.getItem('location_lat');
+  const lon = localStorage.getItem('location_lon');
+  if (!apiKey || !lat || !lon) return null;
+  try {
+    const r = await fetch(
+      'https://api.openweathermap.org/data/2.5/weather?lat=' + lat + '&lon=' + lon + '&appid=' + apiKey + '&units=imperial&lang=zh_cn'
+    );
+    const d = await r.json();
+    if (d.cod !== 200) return null;
+    return {
+      temp: Math.round(d.main.temp),
+      desc: d.weather[0].description,
+      icon: d.weather[0].icon
+    };
+  } catch (e) {
+    console.error('weather:', e);
+    return null;
+  }
+}
+
+/* ===== Memory 状态 ===== */
+
+let memFilter = 'all';
+let memSearch = '';
+let memData = [];
+let memExpanded = null;
+const MEM_CATEGORIES = ['all', 'daily', 'deeptalk', 'feel', 'mood', 'milestone', 'diary', 'relationship', 'observation'];
+
+async function loadMemories() {
+  if (!sb) { memData = []; return; }
+  try {
+    let q = sb
+      .from('memories')
+      .select('id, content, category, importance, tags, created_at')
+      .order('created_at', { ascending: false })
+      .limit(80);
+    if (memFilter !== 'all') q = q.eq('category', memFilter);
+    if (memSearch.trim()) q = q.ilike('content', '%' + memSearch.trim() + '%');
+    const { data, error } = await q;
+    if (error) throw error;
+    memData = data || [];
+  } catch (e) {
+    console.error('memories:', e);
+    memData = [];
+  }
+}
+
+/* ===== 连接测试 ===== */
+
+async function testSupabaseConnection() {
+  if (!sb) return { ok: false, msg: '未初始化' };
+  try {
+    const { count, error } = await sb.from('memories').select('*', { count: 'exact', head: true });
+    if (error) throw error;
+    return { ok: true, msg: '已连接（memories: ' + count + ' 条）' };
+  } catch (e) {
+    return { ok: false, msg: e.message || '连接失败' };
+  }
 }
 
 /* ===== Tab 切换 ===== */
+
 function switchTab(tab) {
   currentTab = tab;
-  document.querySelectorAll('.tabbar button').forEach(btn => btn.classList.remove('active'));
-  document.getElementById(`tab-${tab}`).classList.add('active');
-
-  const el = document.getElementById('content');
-  el.className = `tab-${tab}`;
-
+  document.querySelectorAll('.tabbar button').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('tab-' + tab).classList.add('active');
+  document.getElementById('content').className = 'tab-' + tab;
+  memExpanded = null;
   render();
 }
 
-/* ===== 渲染 ===== */
-function render() {
-  const el = document.getElementById('content');
+/* ===== 渲染入口 ===== */
 
-  if (currentTab === 'home') {
-    el.innerHTML = `
-      <div class="stats">
-        <div>
-          <div class="stat-num">--</div>
-          <div class="stat-label">days</div>
-        </div>
-        <div>
-          <div class="stat-num">--</div>
-          <div class="stat-label">memories</div>
-        </div>
-        <div>
-          <div class="stat-num">--</div>
-          <div class="stat-label">songs</div>
-        </div>
-      </div>
-
-      <div class="card card-whisper">
-        <div class="card-label">TODAY'S WHISPER</div>
-        <div class="card-body">待接入数据</div>
-        <div class="card-sub">--</div>
-      </div>
-
-      <div class="card-grid">
-        <div class="card">
-          <div class="card-label">WEATHER</div>
-          <div class="card-num">--</div>
-          <div class="card-sub" style="text-align:left;">待接入</div>
-        </div>
-        <div class="card">
-          <div class="card-label">TOGETHER</div>
-          <div class="card-num">--</div>
-          <div class="card-sub" style="text-align:left;">days</div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-label">LAST SONG</div>
-        <div class="card-body">待接入数据</div>
-      </div>
-    `;
-  }
-
-  if (currentTab === 'play') {
-    el.innerHTML = `
-      <div class="play-grid">
-        <div class="play-card locked">
-          <div class="play-card-icon">&#9835;</div>
-          <div class="play-card-name">点歌</div>
-          <div class="play-card-desc">即将上线</div>
-        </div>
-        <div class="play-card locked">
-          <div class="play-card-icon">&#9878;</div>
-          <div class="play-card-name">Tally</div>
-          <div class="play-card-desc">记账 / 扭蛋</div>
-        </div>
-        <div class="play-card locked">
-          <div class="play-card-icon">&#9776;</div>
-          <div class="play-card-name">共读</div>
-          <div class="play-card-desc">Catchword</div>
-        </div>
-        <div class="play-card locked">
-          <div class="play-card-icon">&#9836;</div>
-          <div class="play-card-name">弹琴</div>
-          <div class="play-card-desc">Overtone</div>
-        </div>
-        <div class="play-card locked">
-          <div class="play-card-icon">&#9113;</div>
-          <div class="play-card-name">咕咕机</div>
-          <div class="play-card-desc">打印小纸条</div>
-        </div>
-        <div class="play-card locked">
-          <div class="play-card-icon">+</div>
-          <div class="play-card-name">更多</div>
-          <div class="play-card-desc">即将到来</div>
-        </div>
-      </div>
-    `;
-  }
-
-  if (currentTab === 'memory') {
-    el.innerHTML = `
-      <div class="filter-bar">
-        <button class="filter-btn active">all</button>
-        <button class="filter-btn">daily</button>
-        <button class="filter-btn">deeptalk</button>
-        <button class="filter-btn">feel</button>
-        <button class="filter-btn">mood</button>
-        <button class="filter-btn">milestone</button>
-      </div>
-      <div class="card">
-        <div class="card-label">MEMORY</div>
-        <div class="card-body">记忆库数据将在连接 Supabase 后显示</div>
-      </div>
-    `;
-  }
-
-  if (currentTab === 'footprint') {
-    el.innerHTML = `
-      <div class="empty-state">
-        <div class="empty-icon">~</div>
-        <div class="empty-title">足迹功能即将上线</div>
-        <div class="empty-desc">这里会记录陆洄在各处留下的痕迹</div>
-      </div>
-    `;
-  }
-
-  if (currentTab === 'settings') {
-    const savedUrl = localStorage.getItem('supabase_url') || '';
-    const savedKey = localStorage.getItem('supabase_key') || '';
-    const savedTz = localStorage.getItem('timezone') || 'America/Los_Angeles';
-    const savedAnniv = localStorage.getItem('anniversary') || '';
-
-    el.innerHTML = `
-      <div class="card">
-        <div class="card-label">SUPABASE</div>
-        <div class="setting-label">URL</div>
-        <input class="setting-input" id="cfg-url" value="${savedUrl}" placeholder="https://xxx.supabase.co" />
-        <div class="setting-label">Anon Key</div>
-        <input class="setting-input" id="cfg-key" value="${savedKey}" placeholder="eyJ..." />
-      </div>
-
-      <div class="card">
-        <div class="card-label">TIME & LOCATION</div>
-        <div class="setting-label">时区</div>
-        <input class="setting-input" id="cfg-tz" value="${savedTz}" placeholder="America/Los_Angeles" />
-        <div class="setting-label">纪念日</div>
-        <input class="setting-input" id="cfg-anniversary" type="date" value="${savedAnniv}" />
-      </div>
-
-      <button class="save-btn" onclick="saveSettings()">SAVE</button>
-    `;
+async function render() {
+  var el = document.getElementById('content');
+  switch (currentTab) {
+    case 'home':      await renderHome(el); break;
+    case 'play':      renderPlay(el); break;
+    case 'memory':    await renderMemory(el); break;
+    case 'footprint': renderFootprint(el); break;
+    case 'settings':  renderSettings(el); break;
   }
 }
 
-/* ===== 保存设置 ===== */
-function saveSettings() {
-  localStorage.setItem('supabase_url', document.getElementById('cfg-url').value);
-  localStorage.setItem('supabase_key', document.getElementById('cfg-key').value);
+/* ===== Home ===== */
+
+async function renderHome(el) {
+  var days = getDaysTogether();
+  el.innerHTML =
+    '<div class="stats">' +
+      '<div><div class="stat-num" id="h-days">' + days + '</div><div class="stat-label">days</div></div>' +
+      '<div><div class="stat-num" id="h-mem">\u00B7\u00B7\u00B7</div><div class="stat-label">memories</div></div>' +
+      '<div><div class="stat-num" id="h-songs">\u00B7\u00B7\u00B7</div><div class="stat-label">songs</div></div>' +
+    '</div>' +
+    '<div class="card card-whisper" id="h-whisper">' +
+      '<div class="card-label">TODAY\'S WHISPER</div>' +
+      '<div class="card-body">\u00B7\u00B7\u00B7</div>' +
+    '</div>' +
+    '<div class="card-grid">' +
+      '<div class="card" id="h-weather">' +
+        '<div class="card-label">WEATHER</div>' +
+        '<div class="card-num">\u00B7\u00B7\u00B7</div>' +
+      '</div>' +
+      '<div class="card">' +
+        '<div class="card-label">TOGETHER</div>' +
+        '<div class="card-num">' + days + '</div>' +
+        '<div class="card-sub" style="text-align:left">days</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="card" id="h-song">' +
+      '<div class="card-label">LAST SONG</div>' +
+      '<div class="card-body">\u00B7\u00B7\u00B7</div>' +
+    '</div>';
+
+  if (!sb) {
+    document.getElementById('h-mem').textContent = '--';
+    document.getElementById('h-songs').textContent = '--';
+    document.querySelector('#h-whisper .card-body').textContent = '请先在 Settings 中连接 Supabase';
+    document.querySelector('#h-weather .card-num').textContent = '--';
+    document.querySelector('#h-song .card-body').textContent = '请先在 Settings 中连接 Supabase';
+    return;
+  }
+
+  var results = await Promise.all([
+    fetchCount('memories'),
+    fetchCount('songs'),
+    fetchWhisper(),
+    fetchWeather(),
+    fetchLastSong()
+  ]);
+  var memCount = results[0], songCount = results[1], whisper = results[2], weather = results[3], lastSong = results[4];
+
+  document.getElementById('h-mem').textContent = memCount;
+  document.getElementById('h-songs').textContent = songCount;
+
+  var wEl = document.getElementById('h-whisper');
+  if (whisper) {
+    wEl.innerHTML =
+      '<div class="card-label">TODAY\'S WHISPER</div>' +
+      '<div class="card-body">' + escHtml(whisper.content) + '</div>' +
+      '<div class="card-sub">' + formatDate(whisper.date || whisper.created_at) + '</div>';
+  } else {
+    wEl.querySelector('.card-body').textContent = '今天还没有 whisper';
+  }
+
+  var wtEl = document.getElementById('h-weather');
+  if (weather) {
+    wtEl.innerHTML =
+      '<div class="card-label">WEATHER</div>' +
+      '<div class="card-num">' + weather.temp + '\u00B0F</div>' +
+      '<div class="card-sub" style="text-align:left">' + weather.desc + '</div>';
+  } else {
+    wtEl.querySelector('.card-num').textContent = '--';
+  }
+
+  var sEl = document.getElementById('h-song');
+  if (lastSong) {
+    var titleHtml = lastSong.url
+      ? '<a href="' + escHtml(lastSong.url) + '" target="_blank" rel="noopener" class="song-link">' + escHtml(lastSong.title) + '</a>'
+      : escHtml(lastSong.title);
+    sEl.innerHTML =
+      '<div class="card-label">LAST SONG</div>' +
+      '<div class="card-body">' + titleHtml + ' \u2014 ' + escHtml(lastSong.artist) + '</div>' +
+      (lastSong.reason ? '<div class="card-sub" style="text-align:left">' + escHtml(lastSong.reason) + '</div>' : '');
+  } else {
+    sEl.querySelector('.card-body').textContent = '还没有推歌记录';
+  }
+}
+
+/* ===== Play ===== */
+
+function renderPlay(el) {
+  el.innerHTML =
+    '<div class="play-grid">' +
+      '<div class="play-card locked"><div class="play-card-icon">&#9835;</div><div class="play-card-name">点歌</div><div class="play-card-desc">即将上线</div></div>' +
+      '<div class="play-card locked"><div class="play-card-icon">&#9878;</div><div class="play-card-name">Tally</div><div class="play-card-desc">记账 / 扭蛋</div></div>' +
+      '<div class="play-card locked"><div class="play-card-icon">&#9776;</div><div class="play-card-name">共读</div><div class="play-card-desc">Catchword</div></div>' +
+      '<div class="play-card locked"><div class="play-card-icon">&#9836;</div><div class="play-card-name">弹琴</div><div class="play-card-desc">Overtone</div></div>' +
+      '<div class="play-card locked"><div class="play-card-icon">&#9113;</div><div class="play-card-name">咕咕机</div><div class="play-card-desc">打印小纸条</div></div>' +
+      '<div class="play-card locked"><div class="play-card-icon">+</div><div class="play-card-name">更多</div><div class="play-card-desc">即将到来</div></div>' +
+    '</div>';
+}
+
+/* ===== Memory ===== */
+
+async function renderMemory(el) {
+  var filterHtml = MEM_CATEGORIES.map(function(c) {
+    return '<button class="filter-btn' + (memFilter === c ? ' active' : '') + '" onclick="setMemFilter(\'' + c + '\')">' + c + '</button>';
+  }).join('');
+
+  el.innerHTML =
+    '<div class="filter-bar">' + filterHtml + '</div>' +
+    '<div class="search-bar"><input class="search-input" id="mem-search" type="text" placeholder="搜索记忆..." value="' + escHtml(memSearch) + '" /></div>' +
+    '<div id="mem-list" class="mem-list"><div class="mem-loading">\u00B7\u00B7\u00B7</div></div>';
+
+  var searchInput = document.getElementById('mem-search');
+  var searchTimer = null;
+  searchInput.addEventListener('input', function() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function() {
+      memSearch = searchInput.value;
+      refreshMemories();
+    }, 400);
+  });
+
+  await refreshMemories();
+}
+
+async function refreshMemories() {
+  var listEl = document.getElementById('mem-list');
+  if (!listEl) return;
+  if (!sb) {
+    listEl.innerHTML = '<div class="mem-empty">请先在 Settings 中连接 Supabase</div>';
+    return;
+  }
+  listEl.innerHTML = '<div class="mem-loading">加载中\u00B7\u00B7\u00B7</div>';
+  await loadMemories();
+  if (memData.length === 0) {
+    listEl.innerHTML = '<div class="mem-empty">暂无记忆</div>';
+    return;
+  }
+  listEl.innerHTML = memData.map(function(m) {
+    var isExp = memExpanded === m.id;
+    var preview = m.content.length > 80 && !isExp ? m.content.slice(0, 80) + '...' : m.content;
+    var tags = m.tags ? (Array.isArray(m.tags) ? m.tags : [m.tags]).join(' \u00B7 ') : '';
+    return '<div class="mem-card' + (isExp ? ' expanded' : '') + '" onclick="toggleMemory(\'' + m.id + '\')">' +
+      '<div class="mem-meta"><span class="mem-cat">' + (m.category || '') + '</span><span class="mem-date">' + formatDate(m.created_at) + '</span></div>' +
+      '<div class="mem-content">' + escHtml(preview) + '</div>' +
+      (tags ? '<div class="mem-tags">' + escHtml(tags) + '</div>' : '') +
+    '</div>';
+  }).join('');
+}
+
+function setMemFilter(f) {
+  memFilter = f;
+  memExpanded = null;
+  document.querySelectorAll('.filter-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.textContent === f);
+  });
+  refreshMemories();
+}
+
+function toggleMemory(id) {
+  memExpanded = memExpanded === id ? null : id;
+  refreshMemories();
+}
+
+/* ===== Footprint ===== */
+
+function renderFootprint(el) {
+  el.innerHTML =
+    '<div class="empty-state">' +
+      '<div class="empty-icon">~</div>' +
+      '<div class="empty-title">足迹功能即将上线</div>' +
+      '<div class="empty-desc">这里会记录陆洄在各处留下的痕迹</div>' +
+    '</div>';
+}
+
+/* ===== Settings ===== */
+
+function renderSettings(el) {
+  var v = function(k) { return localStorage.getItem(k) || ''; };
+  var tz = v('timezone') || 'America/Los_Angeles';
+
+  var tzOptions = [
+    ['America/Los_Angeles', '太平洋时间 (UTC-7/8)'],
+    ['America/Denver', '山地时间 (UTC-6/7)'],
+    ['America/Chicago', '中部时间 (UTC-5/6)'],
+    ['America/New_York', '东部时间 (UTC-4/5)'],
+    ['Asia/Shanghai', '北京时间 (UTC+8)'],
+    ['Asia/Tokyo', '东京时间 (UTC+9)'],
+    ['Europe/London', '伦敦时间 (UTC+0/1)']
+  ];
+  var tzHtml = tzOptions.map(function(o) {
+    return '<option value="' + o[0] + '"' + (tz === o[0] ? ' selected' : '') + '>' + o[1] + '</option>';
+  }).join('');
+
+  el.innerHTML =
+    '<div class="card">' +
+      '<div class="card-label">SUPABASE</div>' +
+      '<div class="setting-label">URL</div>' +
+      '<input class="setting-input" id="cfg-url" value="' + escHtml(v('supabase_url')) + '" placeholder="https://xxx.supabase.co" />' +
+      '<div class="setting-label">Anon Key</div>' +
+      '<input class="setting-input" id="cfg-key" value="' + escHtml(v('supabase_key')) + '" placeholder="eyJ..." />' +
+      '<div id="conn-status" class="conn-status"></div>' +
+    '</div>' +
+    '<div class="card">' +
+      '<div class="card-label">TIME & LOCATION</div>' +
+      '<div class="setting-label">时区</div>' +
+      '<select class="setting-input" id="cfg-tz">' + tzHtml + '</select>' +
+      '<div class="setting-label">纪念日</div>' +
+      '<input class="setting-input" id="cfg-anniv" type="date" value="' + v('anniversary') + '" />' +
+      '<div class="setting-label">位置 · 纬度</div>' +
+      '<input class="setting-input" id="cfg-lat" type="text" value="' + v('location_lat') + '" placeholder="47.6062" />' +
+      '<div class="setting-label">位置 · 经度</div>' +
+      '<input class="setting-input" id="cfg-lon" type="text" value="' + v('location_lon') + '" placeholder="-122.3321" />' +
+    '</div>' +
+    '<div class="card">' +
+      '<div class="card-label">WEATHER</div>' +
+      '<div class="setting-label">OpenWeatherMap API Key</div>' +
+      '<input class="setting-input" id="cfg-weather" value="' + escHtml(v('weather_api_key')) + '" placeholder="你的 API Key" />' +
+    '</div>' +
+    '<button class="save-btn" onclick="saveSettings()">SAVE</button>';
+
+  if (sb) {
+    var st = document.getElementById('conn-status');
+    st.textContent = '检查连接中...';
+    st.className = 'conn-status checking';
+    testSupabaseConnection().then(function(r) {
+      st.textContent = r.msg;
+      st.className = 'conn-status ' + (r.ok ? 'ok' : 'fail');
+    });
+  }
+}
+
+async function saveSettings() {
+  localStorage.setItem('supabase_url', document.getElementById('cfg-url').value.trim());
+  localStorage.setItem('supabase_key', document.getElementById('cfg-key').value.trim());
   localStorage.setItem('timezone', document.getElementById('cfg-tz').value);
-  localStorage.setItem('anniversary', document.getElementById('cfg-anniversary').value);
+  localStorage.setItem('anniversary', document.getElementById('cfg-anniv').value);
+  localStorage.setItem('location_lat', document.getElementById('cfg-lat').value.trim());
+  localStorage.setItem('location_lon', document.getElementById('cfg-lon').value.trim());
+  localStorage.setItem('weather_api_key', document.getElementById('cfg-weather').value.trim());
+
+  initSupabase();
   updateBackground();
-  alert('已保存');
+
+  var st = document.getElementById('conn-status');
+  if (st) {
+    st.textContent = '正在测试连接...';
+    st.className = 'conn-status checking';
+    var r = await testSupabaseConnection();
+    st.textContent = (r.ok ? '\u2713 ' : '\u2717 ') + r.msg;
+    st.className = 'conn-status ' + (r.ok ? 'ok' : 'fail');
+  }
+}
+
+/* ===== 工具 ===== */
+
+function escHtml(s) {
+  if (!s) return '';
+  var d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
 }
 
 /* ===== 初始化 ===== */
-window.onload = () => {
+
+window.onload = function() {
+  initSupabase();
   updateBackground();
   setInterval(updateBackground, 10 * 60 * 1000);
-
-  const el = document.getElementById('content');
-  el.className = 'tab-home';
   render();
 };
