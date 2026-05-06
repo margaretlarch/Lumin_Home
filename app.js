@@ -185,6 +185,67 @@ async function fetchWhisper() {
   }
 }
 
+var whisperExpanded = false;
+
+async function fetchWhisperHistory(limit) {
+  if (!sb) return [];
+  try {
+    var result = await sb
+      .from('whispers')
+      .select('content, date, created_at')
+      .order('created_at', { ascending: false })
+      .limit(limit || 20);
+    if (result.error) throw result.error;
+    return result.data || [];
+  } catch (e) {
+    console.error('whisper history:', e);
+    return [];
+  }
+}
+
+async function toggleWhisperHistory() {
+  whisperExpanded = !whisperExpanded;
+  var wEl = document.getElementById('h-whisper');
+  if (!wEl) return;
+
+  if (!whisperExpanded) {
+    // 收起——重新渲染只显示最新一条
+    var latest = await fetchWhisper();
+    if (latest) {
+      wEl.innerHTML =
+        '<div class="card-label">TODAY\'S WHISPER</div>' +
+        '<div class="card-body">' + escHtml(latest.content) + '</div>' +
+        '<div class="card-sub">' + formatDate(latest.date || latest.created_at) + ' · 点击查看历史</div>';
+    }
+    return;
+  }
+
+  // 展开——加载历史
+  wEl.innerHTML =
+    '<div class="card-label">WHISPERS</div>' +
+    '<div class="card-body whisper-loading">\u00B7\u00B7\u00B7</div>';
+
+  var history = await fetchWhisperHistory(20);
+  if (!history.length) {
+    wEl.innerHTML =
+      '<div class="card-label">WHISPERS</div>' +
+      '<div class="card-body">还没有 whisper</div>';
+    return;
+  }
+
+  var listHtml = history.map(function(w) {
+    return '<div class="whisper-item">' +
+      '<div class="whisper-date">' + formatDate(w.date || w.created_at) + '</div>' +
+      '<div class="whisper-text">' + escHtml(w.content) + '</div>' +
+    '</div>';
+  }).join('');
+
+  wEl.innerHTML =
+    '<div class="card-label">WHISPERS</div>' +
+    '<div class="whisper-history">' + listHtml + '</div>' +
+    '<div class="card-sub">点击收起</div>';
+}
+
 // 原有 fetchLastSong 保留，备用（Phase 2 中 Home 改用 loadLatestSong）
 async function fetchLastSong() {
   if (!sb) return null;
@@ -230,7 +291,7 @@ let memFilter = 'all';
 let memSearch = '';
 let memData = [];
 let memExpanded = null;
-const MEM_CATEGORIES = ['all', 'daily', 'deeptalk', 'feel', 'mood', 'milestone', 'diary', 'relationship', 'observation'];
+const MEM_CATEGORIES = ['all', 'core', 'feel', 'milestone', 'diary', 'deeptalk', 'daily', 'mood'];
 
 async function loadMemories() {
   if (!sb) { memData = []; return; }
@@ -298,7 +359,7 @@ async function renderHome(el) {
       '<div><div class="stat-num" id="h-mem">\u00B7\u00B7\u00B7</div><div class="stat-label">memories</div></div>' +
       '<div><div class="stat-num" id="h-songs">\u00B7\u00B7\u00B7</div><div class="stat-label">songs</div></div>' +
     '</div>' +
-    '<div class="card card-whisper" id="h-whisper">' +
+    '<div class="card card-whisper" id="h-whisper" onclick="toggleWhisperHistory()">' +
       '<div class="card-label">TODAY\'S WHISPER</div>' +
       '<div class="card-body">\u00B7\u00B7\u00B7</div>' +
     '</div>' +
@@ -341,11 +402,12 @@ async function renderHome(el) {
   document.getElementById('h-songs').textContent = songCount;
 
   var wEl = document.getElementById('h-whisper');
+  whisperExpanded = false;
   if (whisper) {
     wEl.innerHTML =
       '<div class="card-label">TODAY\'S WHISPER</div>' +
       '<div class="card-body">' + escHtml(whisper.content) + '</div>' +
-      '<div class="card-sub">' + formatDate(whisper.date || whisper.created_at) + '</div>';
+      '<div class="card-sub">' + formatDate(whisper.date || whisper.created_at) + ' · 点击查看历史</div>';
   } else {
     wEl.querySelector('.card-body').textContent = '今天还没有 whisper';
   }
