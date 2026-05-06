@@ -479,3 +479,293 @@ select.setting-input {
   background-position: right 10px center;
   padding-right: 28px;
 }
+
+/* ============================================
+   styles.css — Phase 2 推歌模块新增样式
+   追加到现有 styles.css 末尾即可
+   ============================================ */
+
+/* ---------- 点歌子页面通用 ---------- */
+.sub-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px dashed rgba(210, 170, 120, 0.15);
+}
+
+.back-btn {
+  background: transparent;
+  border: 2px solid rgba(200, 168, 112, 0.35);
+  color: #c8a870;
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  padding: 5px 12px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.back-btn:active {
+  background: rgba(200, 168, 112, 0.15);
+  border-color: rgba(200, 168, 112, 0.55);
+  color: #e8c880;
+}
+
+.sub-title {
+  font-family: 'Zpix', monospace;
+  font-size: 13px;
+  color: #e8c880;
+  letter-spacing: 3px;
+}
+
+.sub-count {
+  font-family: 'Zpix', monospace;
+  font-size: 10px;
+  color: rgba(200, 180, 150, 0.4);
+  letter-spacing: 2px;
+  margin-left: auto;
+}
+
+/* ---------- 歌曲卡片（暖色像素风毛玻璃） ---------- */
+.song-card {
+  position: relative;
+  padding: 20px 20px 16px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  background: rgba(210, 170, 120, 0.06);
+  border: 1px solid rgba(210, 170, 120, 0.1);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: transform 0.2s, background 0.3s, border-color 0.3s;
+  animation: songFadeIn 0.5s ease-out both;
+  overflow: hidden;
+}
+.song-card:active {
+  background: rgba(210, 170, 120, 0.12);
+  border-color: rgba(210, 170, 120, 0.2);
+  transform: scale(0.985);
+}
+
+/* 卡片序号水印 */
+.song-card-index {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  font-family: 'Zpix', monospace;
+  font-size: 36px;
+  color: rgba(200, 168, 112, 0.07);
+  line-height: 1;
+  user-select: none;
+  pointer-events: none;
+  letter-spacing: -2px;
+}
+
+/* mood 标签 */
+.song-mood-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  background: rgba(200, 168, 112, 0.12);
+  border: 1px solid rgba(200, 168, 112, 0.18);
+  font-family: 'Zpix', monospace;
+  font-size: 10px;
+  color: rgba(220, 190, 150, 0.7);
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+/* 歌名 + 歌手行 */
+.song-card-header {
+  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.song-title-link {
+  font-family: 'Zpix', monospace;
+  font-size: 16px;
+  font-weight: normal;
+  color: #e8d8c0;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  border-bottom: 1px dotted rgba(200, 168, 112, 0.3);
+  transition: color 0.2s, border-color 0.2s;
+  word-break: break-all;
+}
+.song-title-link:active {
+  color: #f0d890;
+  border-bottom-color: rgba(240, 200, 130, 0.6);
+}
+
+.song-artist {
+  font-size: 12px;
+  color: rgba(200, 180, 150, 0.5);
+  letter-spacing: 1px;
+  font-family: 'Zpix', monospace;
+}
+
+/* 推歌理由 */
+.song-reason {
+  font-size: 13px;
+  line-height: 1.9;
+  color: rgba(200, 180, 150, 0.5);
+  margin: 0 0 14px;
+  max-width: 92%;
+  letter-spacing: 0.3px;
+}
+
+/* 卡片底部：日期 + 外链按钮 */
+.song-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.song-date {
+  font-family: 'Zpix', monospace;
+  font-size: 10px;
+  color: rgba(180, 160, 130, 0.3);
+  letter-spacing: 1px;
+}
+
+.song-ext-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: rgba(200, 130, 100, 0.08);
+  border: 1px solid rgba(200, 130, 100, 0.2);
+  color: rgba(230, 160, 130, 0.75);
+  font-family: 'Zpix', monospace;
+  font-size: 10px;
+  text-decoration: none;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+.song-ext-link:active {
+  background: rgba(200, 130, 100, 0.18);
+  border-color: rgba(200, 130, 100, 0.35);
+  color: rgba(240, 170, 140, 0.9);
+}
+
+/* 播放图标 SVG */
+.song-ext-link svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* ---------- 点歌列表容器 ---------- */
+#jukebox-list {
+  min-height: 120px;
+}
+
+/* 加载状态 */
+.jukebox-loading {
+  text-align: center;
+  padding: 50px 0;
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  color: rgba(200, 180, 150, 0.35);
+  letter-spacing: 2px;
+  animation: jukeboxPulse 1.5s ease-in-out infinite;
+}
+
+/* 空状态 */
+.jukebox-empty {
+  text-align: center;
+  padding: 60px 0;
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  color: rgba(200, 180, 150, 0.25);
+  letter-spacing: 2px;
+  line-height: 2;
+}
+
+/* ---------- Home LAST SONG 卡片 ---------- */
+.last-song-card {
+  position: relative;
+  padding: 18px 20px 14px;
+  border-radius: 12px;
+  background: rgba(210, 170, 120, 0.05);
+  border: 1px solid rgba(210, 170, 120, 0.08);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: background 0.3s;
+}
+.last-song-card .song-title-link {
+  font-size: 15px;
+}
+.last-song-card .song-reason {
+  font-size: 12.5px;
+  max-width: 100%;
+}
+
+/* 占位状态 */
+.last-song-placeholder {
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  color: rgba(200, 180, 150, 0.25);
+  letter-spacing: 2px;
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* ---------- 动画关键帧 ---------- */
+@keyframes songFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes jukeboxPulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* ---------- 错误重试提示 ---------- */
+.jukebox-error {
+  text-align: center;
+  padding: 40px 0;
+}
+.jukebox-error p {
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  color: rgba(220, 150, 130, 0.5);
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+.jukebox-retry-btn {
+  background: transparent;
+  border: 2px solid rgba(200, 150, 130, 0.3);
+  color: rgba(220, 160, 140, 0.6);
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  padding: 4px 14px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+.jukebox-retry-btn:active {
+  background: rgba(200, 150, 130, 0.12);
+  border-color: rgba(200, 150, 130, 0.5);
+}
