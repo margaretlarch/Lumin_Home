@@ -138,10 +138,10 @@ async function fetchWeather() {
   if (!apiKey || !lat || !lon) return null;
   try {
     const r = await fetch(
-      'https://api.openweathermap.org/data/2.5/weather?lat=' + lat + '&lon=' + lon + '&appid=' + apiKey + '&units=imperial&lang=zh_cn'
+      'https://api.openweathermap.org/data/2.5/weather?lat=' + lat + '&lon=' + lon + '&appid=' + apiKey + '&units=metric&lang=zh_cn'
     );
     const d = await r.json();
-    if (d.cod !== 200) return null;
+    if (d.cod != 200) return null;
     return {
       temp: Math.round(d.main.temp),
       desc: d.weather[0].description,
@@ -283,7 +283,7 @@ async function renderHome(el) {
   if (weather) {
     wtEl.innerHTML =
       '<div class="card-label">WEATHER</div>' +
-      '<div class="card-num">' + weather.temp + '\u00B0F</div>' +
+      '<div class="card-num">' + weather.temp + '\u00B0C</div>' +
       '<div class="card-sub" style="text-align:left">' + weather.desc + '</div>';
   } else {
     wtEl.querySelector('.card-num').textContent = '--';
@@ -330,7 +330,7 @@ function openPlayModule(name) {
           '<button class="back-btn" onclick="switchTab(\'play\')">&lt; 返回</button>' +
           '<span class="sub-title">记账</span>' +
         '</div>' +
-        '<div style="text-align:center;padding:60px 0;font-family:\'Zpix\',monospace;font-size:11px;color:rgba(200,180,150,0.3);letter-spacing:2px;">即将上线…</div>';
+        '<div style="text-align:center;padding:60px 0;font-family:\'Zpix\',monospace;font-size:11px;color:#8a7a60;letter-spacing:2px;">即将上线…</div>';
       break;
     case 'reading':
       el.innerHTML =
@@ -338,7 +338,7 @@ function openPlayModule(name) {
           '<button class="back-btn" onclick="switchTab(\'play\')">&lt; 返回</button>' +
           '<span class="sub-title">共读</span>' +
         '</div>' +
-        '<div style="text-align:center;padding:60px 0;font-family:\'Zpix\',monospace;font-size:11px;color:rgba(200,180,150,0.3);letter-spacing:2px;">即将上线…</div>';
+        '<div style="text-align:center;padding:60px 0;font-family:\'Zpix\',monospace;font-size:11px;color:#8a7a60;letter-spacing:2px;">即将上线…</div>';
       break;
     case 'piano':
       el.innerHTML =
@@ -346,7 +346,7 @@ function openPlayModule(name) {
           '<button class="back-btn" onclick="switchTab(\'play\')">&lt; 返回</button>' +
           '<span class="sub-title">弹琴</span>' +
         '</div>' +
-        '<div style="text-align:center;padding:60px 0;font-family:\'Zpix\',monospace;font-size:11px;color:rgba(200,180,150,0.3);letter-spacing:2px;">即将上线…</div>';
+        '<div style="text-align:center;padding:60px 0;font-family:\'Zpix\',monospace;font-size:11px;color:#8a7a60;letter-spacing:2px;">即将上线…</div>';
       break;
     case 'memobird':
       el.innerHTML =
@@ -354,7 +354,7 @@ function openPlayModule(name) {
           '<button class="back-btn" onclick="switchTab(\'play\')">&lt; 返回</button>' +
           '<span class="sub-title">咕咕机</span>' +
         '</div>' +
-        '<div style="text-align:center;padding:60px 0;font-family:\'Zpix\',monospace;font-size:11px;color:rgba(200,180,150,0.3);letter-spacing:2px;">即将上线…</div>';
+        '<div style="text-align:center;padding:60px 0;font-family:\'Zpix\',monospace;font-size:11px;color:#8a7a60;letter-spacing:2px;">即将上线…</div>';
       break;
     default:
       switchTab('play');
