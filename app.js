@@ -70,7 +70,7 @@ function render() {
 
       <div class="card card-whisper">
         <div class="card-label">TODAY'S WHISPER</div>
-        <div class="card-body" style="font-style:italic;">待接入数据</div>
+        <div class="card-body">待接入数据</div>
         <div class="card-sub">--</div>
       </div>
 
