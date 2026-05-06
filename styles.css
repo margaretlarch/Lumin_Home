@@ -828,3 +828,49 @@ select.setting-input {
     transform: translateY(calc(100vh + 10px)) translateX(3px);
   }
 }
+
+/* ===== Whisper 历史列表 ===== */
+.card-whisper {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.whisper-history {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 50vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.whisper-history::-webkit-scrollbar {
+  width: 2px;
+}
+
+.whisper-history::-webkit-scrollbar-thumb {
+  background: rgba(210, 170, 120, 0.3);
+}
+
+.whisper-item {
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(210, 170, 120, 0.12);
+}
+
+.whisper-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.whisper-date {
+  font-size: 10px;
+  color: #8a7a60;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.whisper-text {
+  font-size: 12px;
+  color: #e8d8c0;
+  line-height: 1.8;
+}
