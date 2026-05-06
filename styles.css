@@ -930,7 +930,7 @@ select.setting-input {
 .tally-type { font-family: 'Zpix'; font-size: 14px; }
 .tally-type.income { color: #8abd6a; }
 .tally-type.expense { color: #d48a6a; }
-.tally-desc { font-size: 11px; color: #b8a880; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tally-desc { font-size: 11px; color: #b8a880; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tally-date { font-size: 10px; color: #8a7a60; }
 .tally-empty, .tally-error { text-align: center; color: #8a7a60; padding: 30px 0; }
 
@@ -1114,4 +1114,37 @@ select.setting-input {
   margin-bottom: 4px;
   color: #e8d8c0;
   cursor: pointer;
+}
+
+/* ===== 删除按钮（通用小型） ===== */
+.delete-btn-small {
+  background: transparent;
+  border: 1px solid rgba(200, 120, 100, 0.3);
+  color: #b87a6a;
+  font-family: 'Zpix', monospace;
+  font-size: 10px;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.delete-btn-small:active {
+  background: rgba(200, 120, 100, 0.15);
+  border-color: rgba(200, 120, 100, 0.5);
+  color: #d48a6a;
+}
+
+/* 书籍卡片右侧改为纵向布局 */
+.book-card-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* 记账列表项加删除按钮 */
+.tally-item .delete-btn-small {
+  margin-left: 4px;
 }
