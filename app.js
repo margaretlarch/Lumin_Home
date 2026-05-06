@@ -84,7 +84,78 @@ function updateBackground() {
   document.getElementById('bg-overlay').style.background = config.overlay;
 }
 
-/* ===== 数据读取 ===== */
+/* ===== 天气视觉效果 ===== */
+
+var currentWeatherType = null;
+
+function getWeatherType(icon) {
+  if (!icon) return 'clear';
+  var code = icon.slice(0, 2);
+  if (code === '09' || code === '10') return 'rain';
+  if (code === '11') return 'storm';
+  if (code === '13') return 'snow';
+  if (code === '50') return 'mist';
+  if (code === '03' || code === '04') return 'clouds';
+  return 'clear';
+}
+
+function updateWeatherFx(weather) {
+  var fxEl = document.getElementById('weather-fx');
+  if (!fxEl) return;
+
+  var type = weather ? getWeatherType(weather.icon) : 'clear';
+
+  // 没变化就不重建
+  if (type === currentWeatherType) return;
+  currentWeatherType = type;
+
+  // 清空
+  fxEl.innerHTML = '';
+  fxEl.className = '';
+
+  if (type === 'clear' || type === 'clouds') {
+    // 多云只加一个淡灰覆盖class
+    if (type === 'clouds') fxEl.className = 'wx-clouds';
+    return;
+  }
+
+  if (type === 'mist') {
+    fxEl.className = 'wx-mist';
+    return;
+  }
+
+  // 雨 / 暴风雨
+  if (type === 'rain' || type === 'storm') {
+    fxEl.className = 'wx-rain';
+    var count = type === 'storm' ? 50 : 35;
+    var html = '';
+    for (var i = 0; i < count; i++) {
+      var left = (Math.random() * 110 - 5).toFixed(1);
+      var delay = (Math.random() * 1.2).toFixed(2);
+      var dur = (0.4 + Math.random() * 0.3).toFixed(2);
+      var opacity = (0.15 + Math.random() * 0.25).toFixed(2);
+      html += '<div class="wx-drop" style="left:' + left + '%;animation-delay:' + delay + 's;animation-duration:' + dur + 's;opacity:' + opacity + '"></div>';
+    }
+    fxEl.innerHTML = html;
+    return;
+  }
+
+  // 雪
+  if (type === 'snow') {
+    fxEl.className = 'wx-snow';
+    var html = '';
+    for (var i = 0; i < 30; i++) {
+      var left = (Math.random() * 110 - 5).toFixed(1);
+      var delay = (Math.random() * 4).toFixed(2);
+      var dur = (3 + Math.random() * 3).toFixed(2);
+      var size = (2 + Math.random() * 3).toFixed(1);
+      var opacity = (0.3 + Math.random() * 0.4).toFixed(2);
+      html += '<div class="wx-flake" style="left:' + left + '%;animation-delay:' + delay + 's;animation-duration:' + dur + 's;width:' + size + 'px;height:' + size + 'px;opacity:' + opacity + '"></div>';
+    }
+    fxEl.innerHTML = html;
+    return;
+  }
+}
 
 async function fetchCount(table) {
   if (!sb) return '--';
@@ -285,8 +356,10 @@ async function renderHome(el) {
       '<div class="card-label">WEATHER</div>' +
       '<div class="card-num">' + weather.temp + '\u00B0C</div>' +
       '<div class="card-sub" style="text-align:left">' + weather.desc + '</div>';
+    updateWeatherFx(weather);
   } else {
     wtEl.querySelector('.card-num').textContent = '--';
+    updateWeatherFx(null);
   }
 
   // Phase 2: 使用独立函数加载最新一首歌，展示完整信息
@@ -733,4 +806,3 @@ window.onload = function() {
   setInterval(updateBackground, 10 * 60 * 1000);
   render();
 };
- 
