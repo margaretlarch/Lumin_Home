@@ -874,3 +874,244 @@ select.setting-input {
   color: #e8d8c0;
   line-height: 1.8;
 }
+
+/* ===== Phase 3 — Tally 记账 ===== */
+.tally-form {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(210, 170, 120, 0.18);
+  border: 2px dashed rgba(210, 170, 120, 0.3);
+}
+.tally-form-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.tally-select, .tally-input {
+  flex: 1;
+  padding: 8px 10px;
+  background: rgba(210, 170, 120, 0.08);
+  border: 2px solid rgba(210, 170, 120, 0.25);
+  color: #e8d8c0;
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  outline: none;
+  margin-bottom: 8px;
+}
+.tally-select {
+  appearance: none;
+  -webkit-appearance: none;
+}
+.tally-input::placeholder { color: #6a5a40; }
+.tally-save-btn {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  background: rgba(210, 170, 120, 0.12);
+  border: 2px dashed rgba(210, 170, 120, 0.4);
+  color: #e8d8c0;
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+.tally-save-btn:active { background: rgba(210, 170, 120, 0.25); }
+
+.tally-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: rgba(210, 170, 120, 0.15);
+  border: 1px dashed rgba(210, 170, 120, 0.25);
+  margin-bottom: 6px;
+}
+.tally-type { font-family: 'Zpix'; font-size: 14px; }
+.tally-type.income { color: #8abd6a; }
+.tally-type.expense { color: #d48a6a; }
+.tally-desc { font-size: 11px; color: #b8a880; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tally-date { font-size: 10px; color: #8a7a60; }
+.tally-empty, .tally-error { text-align: center; color: #8a7a60; padding: 30px 0; }
+
+/* ===== Phase 3 — 共读 ===== */
+.reading-filter-bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin-bottom: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+.reading-filter-btn {
+  padding: 4px 12px;
+  border: 2px solid rgba(210, 170, 120, 0.25);
+  background: transparent;
+  color: #8a7a60;
+  font-family: 'Zpix';
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.reading-filter-btn.active {
+  background: rgba(210, 170, 120, 0.22);
+  color: #c8a870;
+  border-color: rgba(210, 170, 120, 0.5);
+}
+
+.reading-book-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: rgba(210, 170, 120, 0.22);
+  border: 2px dashed rgba(210, 170, 120, 0.3);
+  cursor: pointer;
+}
+.book-cover { font-size: 28px; }
+.book-info { flex: 1; }
+.book-title { font-size: 13px; color: #e8d8c0; margin-bottom: 2px; }
+.book-author { font-size: 11px; color: #8a7a60; margin-bottom: 6px; }
+.book-progress-bar {
+  height: 4px;
+  background: rgba(210, 170, 120, 0.15);
+  margin-bottom: 4px;
+}
+.book-progress-fill {
+  height: 100%;
+  background: #c8a870;
+}
+.book-progress-text { font-size: 10px; color: #8a7a60; }
+.book-status {
+  font-size: 10px;
+  color: #c8a870;
+  padding: 2px 8px;
+  border: 1px solid rgba(210, 170, 120, 0.4);
+  align-self: flex-start;
+  margin-top: 4px;
+}
+.reading-add-btn {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  background: transparent;
+  border: 2px dashed rgba(210, 170, 120, 0.4);
+  color: #c8a870;
+  font-family: 'Zpix';
+  font-size: 12px;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+.reading-add-btn:active { background: rgba(210, 170, 120, 0.15); }
+
+/* 阅读页面 */
+.reading-chapter-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+  color: #c8a870;
+  font-size: 13px;
+}
+.reading-content {
+  background: rgba(210, 170, 120, 0.15);
+  border: 2px dashed rgba(210, 170, 120, 0.25);
+  padding: 14px;
+  margin-bottom: 12px;
+  min-height: 30vh;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #e8d8c0;
+  white-space: pre-wrap;
+}
+.chapter-empty { color: #8a7a60; text-align: center; padding: 40px 0; }
+.reading-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.reading-nav button {
+  padding: 6px 14px;
+  background: transparent;
+  border: 2px solid rgba(210, 170, 120, 0.35);
+  color: #c8a870;
+  font-family: 'Zpix';
+  font-size: 11px;
+  cursor: pointer;
+}
+.reading-nav button:disabled { opacity: 0.3; }
+.reading-chapter-indicator { color: #8a7a60; }
+.reading-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.reading-action-btn {
+  flex: 1;
+  padding: 8px;
+  background: rgba(210, 170, 120, 0.12);
+  border: 2px dashed rgba(210, 170, 120, 0.35);
+  color: #c8a870;
+  font-family: 'Zpix';
+  font-size: 11px;
+  cursor: pointer;
+}
+.reading-action-btn:active { background: rgba(210, 170, 120, 0.25); }
+
+.chapter-editor {
+  width: 100%;
+  min-height: 30vh;
+  background: rgba(210, 170, 120, 0.08);
+  border: 2px solid rgba(210, 170, 120, 0.3);
+  color: #e8d8c0;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 10px;
+  margin-bottom: 8px;
+  resize: vertical;
+}
+
+.reading-notes { margin-top: 12px; }
+.notes-title { font-size: 12px; color: #c8a870; margin-bottom: 8px; }
+.note-item {
+  background: rgba(210, 170, 120, 0.12);
+  border-left: 3px solid rgba(210, 170, 120, 0.4);
+  padding: 8px 10px;
+  margin-bottom: 6px;
+}
+.note-quote { font-style: italic; color: #b8a880; margin-bottom: 4px; }
+.note-text { color: #e8d8c0; }
+
+.add-book-form { margin-top: 8px; }
+.tab-bar-add {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.add-tab {
+  flex: 1;
+  padding: 6px;
+  background: transparent;
+  border: 2px solid rgba(210, 170, 120, 0.25);
+  color: #8a7a60;
+  font-family: 'Zpix';
+  font-size: 11px;
+  cursor: pointer;
+}
+.add-tab.active {
+  background: rgba(210, 170, 120, 0.22);
+  color: #c8a870;
+  border-color: rgba(210, 170, 120, 0.5);
+}
+
+.chapter-list { margin-top: 12px; }
+.chapter-item {
+  padding: 10px;
+  background: rgba(210, 170, 120, 0.15);
+  border: 1px dashed rgba(210, 170, 120, 0.25);
+  margin-bottom: 4px;
+  color: #e8d8c0;
+  cursor: pointer;
+}
