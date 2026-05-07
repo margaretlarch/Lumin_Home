@@ -3,7 +3,7 @@
    缓存静态资源，支持离线访问
    ================================================================ */
 
-var CACHE_NAME = 'lumin-home-v1';
+var CACHE_NAME = 'lumin-home-v2';
 
 var STATIC_ASSETS = [
   './',
