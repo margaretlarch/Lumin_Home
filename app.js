@@ -341,9 +341,53 @@ async function render() {
 
 /* ===== Home ===== */
 
+function buildMiniCalendar() {
+  var now = getNow();
+  var year = now.getFullYear();
+  var month = now.getMonth(); // 0-indexed
+  var today = now.getDate();
+  var dayOfWeek = now.getDay(); // 0=Sun
+
+  var monthNames = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  var weekDays = ['日','一','二','三','四','五','六'];
+
+  // first day of month (0=Sun)
+  var firstDay = new Date(year, month, 1).getDay();
+  var daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  var headerHtml = '<div class="cal-header">' +
+    '<span class="cal-month">' + monthNames[month] + '</span>' +
+    '<span class="cal-year">' + year + '</span>' +
+  '</div>';
+
+  var weekHtml = '<div class="cal-row cal-week">' +
+    weekDays.map(function(d) { return '<span class="cal-cell cal-wk">' + d + '</span>'; }).join('') +
+  '</div>';
+
+  // build date grid
+  var cells = [];
+  for (var i = 0; i < firstDay; i++) { cells.push('<span class="cal-cell"></span>'); }
+  for (var d = 1; d <= daysInMonth; d++) {
+    var cls = 'cal-cell cal-day';
+    if (d === today) cls += ' cal-today';
+    cells.push('<span class="' + cls + '">' + d + '</span>');
+  }
+  // pad remaining cells to complete the grid row
+  while (cells.length % 7 !== 0) { cells.push('<span class="cal-cell"></span>'); }
+
+  var rows = '';
+  for (var i = 0; i < cells.length; i += 7) {
+    rows += '<div class="cal-row">' + cells.slice(i, i + 7).join('') + '</div>';
+  }
+
+  return '<div class="mini-cal">' + headerHtml + weekHtml + rows + '</div>';
+}
+
 async function renderHome(el) {
   var days = getDaysTogether();
+  var calHtml = buildMiniCalendar();
   el.innerHTML =
+    calHtml +
     '<div class="stats">' +
       '<div><div class="stat-num" id="h-days">' + days + '</div><div class="stat-label">days</div></div>' +
       '<div><div class="stat-num" id="h-mem">···</div><div class="stat-label">memories</div></div>' +
