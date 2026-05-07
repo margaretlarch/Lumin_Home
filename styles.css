@@ -161,6 +161,53 @@ body.sub-page-active {
   margin-bottom: 10px;
 }
 
+/* ===== Mini Calendar ===== */
+.mini-cal {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  background: rgba(210, 170, 120, 0.18);
+  border: 2px dashed rgba(210, 170, 120, 0.3);
+}
+.cal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.cal-month {
+  font-size: 13px;
+  color: #e8c880;
+  letter-spacing: 2px;
+}
+.cal-year {
+  font-size: 10px;
+  color: #8a7a60;
+}
+.cal-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+}
+.cal-cell {
+  padding: 3px 0;
+  font-size: 11px;
+  color: #b8a880;
+  line-height: 1.6;
+}
+.cal-wk {
+  color: #8a7a60;
+  font-size: 10px;
+  padding-bottom: 2px;
+}
+.cal-day {
+  color: #c8b898;
+}
+.cal-today {
+  color: #1a1410;
+  background: #e8c880;
+  font-weight: bold;
+}
+
 /* ===== Home 版头 ===== */
 .stats {
   display: flex;
@@ -546,4 +593,3 @@ select.setting-input {
   letter-spacing: 2px;
   margin-left: auto;
 }
-
