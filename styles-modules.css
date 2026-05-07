@@ -1,0 +1,826 @@
+/* ================================================================
+   Lumin Home — styles-modules.css (Play 子模块样式)
+   点歌 / 记账 / 共读 / 天气效果 / Whisper 历史
+   ================================================================ */
+
+/* ---------- 歌曲卡片（暖色像素风毛玻璃） ---------- */
+.song-card {
+  position: relative;
+  padding: 16px 14px;
+  margin-bottom: 10px;
+  background: rgba(210, 170, 120, 0.22);
+  border: 2px dashed rgba(210, 170, 120, 0.3);
+  transition: background 0.2s;
+  animation: songFadeIn 0.5s ease-out both;
+  overflow: hidden;
+}
+.song-card:active {
+  background: rgba(210, 170, 120, 0.35);
+}
+
+/* 卡片序号水印 */
+.song-card-index {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  font-family: 'Zpix', monospace;
+  font-size: 36px;
+  color: rgba(200, 168, 112, 0.12);
+  line-height: 1;
+  user-select: none;
+  pointer-events: none;
+  letter-spacing: -2px;
+}
+
+/* mood 标签 */
+.song-mood-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  background: rgba(210, 170, 120, 0.18);
+  border: 2px solid rgba(210, 170, 120, 0.25);
+  font-family: 'Zpix', monospace;
+  font-size: 10px;
+  color: #b8a880;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+/* 歌名 + 歌手行 */
+.song-card-header {
+  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.song-title-link {
+  font-family: 'Zpix', monospace;
+  font-size: 16px;
+  font-weight: normal;
+  color: #e8d8c0;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  border-bottom: 1px dashed rgba(210, 170, 120, 0.4);
+  transition: color 0.2s, border-color 0.2s;
+  word-break: break-all;
+}
+.song-title-link:active {
+  color: #f5e0a0;
+  border-bottom-color: rgba(210, 170, 120, 0.6);
+}
+
+.song-artist {
+  font-size: 12px;
+  color: #b8a880;
+  letter-spacing: 1px;
+  font-family: 'Zpix', monospace;
+}
+
+/* 推歌理由 */
+.song-reason {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #b8a880;
+  margin: 0 0 14px;
+  max-width: 92%;
+  letter-spacing: 0.3px;
+}
+
+/* 卡片底部：日期 + 外链按钮 */
+.song-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.song-date {
+  font-family: 'Zpix', monospace;
+  font-size: 10px;
+  color: #8a7a60;
+  letter-spacing: 1px;
+}
+
+.song-ext-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  background: rgba(210, 170, 120, 0.12);
+  border: 2px solid rgba(210, 170, 120, 0.25);
+  color: #c8a870;
+  font-family: 'Zpix', monospace;
+  font-size: 10px;
+  text-decoration: none;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+.song-ext-link:active {
+  background: rgba(210, 170, 120, 0.25);
+  border-color: rgba(210, 170, 120, 0.45);
+  color: #e8c880;
+}
+
+/* 播放图标 SVG */
+.song-ext-link svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+/* ---------- 点歌列表容器 ---------- */
+#jukebox-list {
+  min-height: 120px;
+}
+
+/* 加载状态 */
+.jukebox-loading {
+  text-align: center;
+  padding: 50px 0;
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  color: #8a7a60;
+  letter-spacing: 2px;
+  animation: jukeboxPulse 1.5s ease-in-out infinite;
+}
+
+/* 空状态 */
+.jukebox-empty {
+  text-align: center;
+  padding: 60px 0;
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  color: #8a7a60;
+  letter-spacing: 2px;
+  line-height: 2;
+}
+
+/* ---------- Home LAST SONG 卡片 ---------- */
+.last-song-card {
+  background: rgba(210, 170, 120, 0.35);
+  border: 2px dashed rgba(210, 170, 120, 0.45);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.last-song-card .song-title-link {
+  font-size: 14px;
+}
+.last-song-card .song-reason {
+  font-size: 12px;
+  max-width: 100%;
+}
+
+/* 占位状态 */
+.last-song-placeholder {
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  color: #8a7a60;
+  letter-spacing: 2px;
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* ---------- 动画关键帧 ---------- */
+@keyframes songFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes jukeboxPulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* ---------- 错误重试提示 ---------- */
+.jukebox-error {
+  text-align: center;
+  padding: 40px 0;
+}
+.jukebox-error p {
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  color: #d48a6a;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+.jukebox-retry-btn {
+  background: transparent;
+  border: 2px solid rgba(210, 170, 120, 0.3);
+  color: #c8a870;
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  padding: 4px 14px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+.jukebox-retry-btn:active {
+  background: rgba(210, 170, 120, 0.15);
+  border-color: rgba(210, 170, 120, 0.5);
+}
+
+/* ===== 天气视觉效果 ===== */
+#weather-fx {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* 多云：淡灰覆盖 */
+.wx-clouds {
+  background: rgba(80, 80, 100, 0.15);
+  transition: background 2s ease;
+}
+
+/* 雾/霾：模糊覆盖 */
+.wx-mist {
+  background: rgba(180, 170, 150, 0.12);
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
+  transition: background 2s ease;
+}
+
+/* 雨滴 */
+.wx-drop {
+  position: absolute;
+  top: -20px;
+  width: 1px;
+  height: 18px;
+  background: linear-gradient(to bottom, transparent, rgba(200, 210, 230, 0.5));
+  animation: wxRainFall 0.5s linear infinite;
+}
+
+@keyframes wxRainFall {
+  0% {
+    transform: translateY(-20px);
+  }
+  100% {
+    transform: translateY(calc(100vh + 20px));
+  }
+}
+
+/* 雪花 */
+.wx-flake {
+  position: absolute;
+  top: -10px;
+  border-radius: 50%;
+  background: rgba(240, 240, 255, 0.7);
+  animation: wxSnowFall 4s linear infinite;
+}
+
+@keyframes wxSnowFall {
+  0% {
+    transform: translateY(-10px) translateX(0);
+  }
+  25% {
+    transform: translateY(25vh) translateX(8px);
+  }
+  50% {
+    transform: translateY(50vh) translateX(-5px);
+  }
+  75% {
+    transform: translateY(75vh) translateX(10px);
+  }
+  100% {
+    transform: translateY(calc(100vh + 10px)) translateX(3px);
+  }
+}
+
+/* ===== Whisper 历史列表 ===== */
+.card-whisper {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.whisper-history {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 50vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.whisper-history::-webkit-scrollbar {
+  width: 2px;
+}
+
+.whisper-history::-webkit-scrollbar-thumb {
+  background: rgba(210, 170, 120, 0.3);
+}
+
+.whisper-item {
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(210, 170, 120, 0.12);
+}
+
+.whisper-item:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.whisper-date {
+  font-size: 10px;
+  color: #8a7a60;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+.whisper-text {
+  font-size: 12px;
+  color: #e8d8c0;
+  line-height: 1.8;
+}
+
+/* ===== Phase 3 — Tally 记账 ===== */
+.tally-form {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(210, 170, 120, 0.18);
+  border: 2px dashed rgba(210, 170, 120, 0.3);
+}
+.tally-form-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.tally-select, .tally-input {
+  flex: 1;
+  padding: 8px 10px;
+  background: rgba(210, 170, 120, 0.08);
+  border: 2px solid rgba(210, 170, 120, 0.25);
+  color: #e8d8c0;
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  outline: none;
+  margin-bottom: 8px;
+}
+.tally-select {
+  appearance: none;
+  -webkit-appearance: none;
+}
+.tally-input::placeholder { color: #6a5a40; }
+.tally-save-btn {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  background: rgba(210, 170, 120, 0.12);
+  border: 2px dashed rgba(210, 170, 120, 0.4);
+  color: #e8d8c0;
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+.tally-save-btn:active { background: rgba(210, 170, 120, 0.25); }
+
+/* Tally tabs */
+.tally-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.tally-tab {
+  padding: 5px 16px;
+  border: 2px solid rgba(210, 170, 120, 0.25);
+  background: transparent;
+  color: #8a7a60;
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+.tally-tab.active {
+  background: rgba(210, 170, 120, 0.22);
+  color: #c8a870;
+  border-color: rgba(210, 170, 120, 0.5);
+}
+
+/* Category tag grid */
+.tally-cat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.tally-cat-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 2px solid rgba(210, 170, 120, 0.2);
+  background: transparent;
+  color: #8a7a60;
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tally-cat-btn.active {
+  background: rgba(210, 170, 120, 0.2);
+  color: #e8d8c0;
+  border-color: rgba(210, 170, 120, 0.5);
+}
+
+/* Color dot */
+.cat-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+}
+
+/* Filter bar in list */
+.tally-filter-bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+.tally-filter-bar::-webkit-scrollbar { display: none; }
+.tally-filter-bar .filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Tally list items */
+.tally-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(210, 170, 120, 0.15);
+  border: 1px dashed rgba(210, 170, 120, 0.25);
+  margin-bottom: 4px;
+}
+.tally-item.tally-date-gap {
+  margin-top: 10px;
+}
+.tally-type { font-family: 'Zpix'; font-size: 13px; white-space: nowrap; }
+.tally-type.income { color: #8abd6a; }
+.tally-type.expense { color: #d48a6a; }
+.tally-desc { font-size: 11px; color: #b8a880; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tally-date { font-size: 10px; color: #8a7a60; white-space: nowrap; }
+.tally-empty, .tally-error { text-align: center; color: #8a7a60; padding: 30px 0; }
+
+/* Stats view */
+.tally-stats-mode {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.tally-stats-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.tally-nav-btn {
+  background: transparent;
+  border: 2px solid rgba(210, 170, 120, 0.3);
+  color: #c8a870;
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.tally-nav-btn:active { background: rgba(210, 170, 120, 0.15); }
+#tally-stats-label {
+  font-family: 'Zpix', monospace;
+  font-size: 13px;
+  color: #e8c880;
+  letter-spacing: 2px;
+}
+.tally-stats-summary {
+  margin-bottom: 16px;
+}
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  padding: 12px;
+  background: rgba(210, 170, 120, 0.15);
+  border: 2px dashed rgba(210, 170, 120, 0.25);
+}
+.stats-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.stats-num {
+  font-family: 'Zpix', monospace;
+  font-size: 13px;
+  color: #e8d8c0;
+}
+.stats-num.income { color: #8abd6a; }
+.stats-num.expense { color: #d48a6a; }
+.stats-label {
+  font-size: 10px;
+  color: #8a7a60;
+  letter-spacing: 1px;
+}
+
+/* Chart */
+.tally-chart-area {
+  margin-bottom: 12px;
+}
+.tally-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  padding: 8px 4px;
+  background: rgba(210, 170, 120, 0.08);
+  border: 1px dashed rgba(210, 170, 120, 0.2);
+  overflow-x: auto;
+  min-height: 140px;
+}
+.chart-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+.chart-bar-wrap.year-bar {
+  flex: 1;
+  min-width: 0;
+}
+.chart-bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  min-width: 4px;
+}
+.chart-seg {
+  width: 100%;
+  min-height: 1px;
+}
+.chart-x-label {
+  font-family: 'Zpix', monospace;
+  font-size: 8px;
+  color: #8a7a60;
+  margin-top: 2px;
+}
+
+/* Legend */
+.tally-stats-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 10px;
+  background: rgba(210, 170, 120, 0.1);
+  border: 1px dashed rgba(210, 170, 120, 0.2);
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.legend-name {
+  font-size: 10px;
+  color: #b8a880;
+}
+.legend-val {
+  font-size: 10px;
+  color: #e8d8c0;
+  font-family: 'Zpix', monospace;
+}
+
+/* ===== Phase 3 — 共读 ===== */
+.reading-filter-bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  margin-bottom: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+.reading-filter-btn {
+  padding: 4px 12px;
+  border: 2px solid rgba(210, 170, 120, 0.25);
+  background: transparent;
+  color: #8a7a60;
+  font-family: 'Zpix';
+  font-size: 11px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.reading-filter-btn.active {
+  background: rgba(210, 170, 120, 0.22);
+  color: #c8a870;
+  border-color: rgba(210, 170, 120, 0.5);
+}
+
+.reading-book-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: rgba(210, 170, 120, 0.22);
+  border: 2px dashed rgba(210, 170, 120, 0.3);
+  cursor: pointer;
+}
+.book-cover { font-size: 28px; }
+.book-info { flex: 1; }
+.book-title { font-size: 13px; color: #e8d8c0; margin-bottom: 2px; }
+.book-author { font-size: 11px; color: #8a7a60; margin-bottom: 6px; }
+.book-progress-bar {
+  height: 4px;
+  background: rgba(210, 170, 120, 0.15);
+  margin-bottom: 4px;
+}
+.book-progress-fill {
+  height: 100%;
+  background: #c8a870;
+}
+.book-progress-text { font-size: 10px; color: #8a7a60; }
+.book-status {
+  font-size: 10px;
+  color: #c8a870;
+  padding: 2px 8px;
+  border: 1px solid rgba(210, 170, 120, 0.4);
+  align-self: flex-start;
+  margin-top: 4px;
+}
+.reading-add-btn {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  background: transparent;
+  border: 2px dashed rgba(210, 170, 120, 0.4);
+  color: #c8a870;
+  font-family: 'Zpix';
+  font-size: 12px;
+  letter-spacing: 2px;
+  cursor: pointer;
+}
+.reading-add-btn:active { background: rgba(210, 170, 120, 0.15); }
+
+/* 阅读页面 */
+.reading-chapter-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+  color: #c8a870;
+  font-size: 13px;
+}
+.reading-content {
+  background: rgba(210, 170, 120, 0.15);
+  border: 2px dashed rgba(210, 170, 120, 0.25);
+  padding: 14px;
+  margin-bottom: 12px;
+  min-height: 30vh;
+  font-size: 13px;
+  line-height: 1.9;
+  color: #e8d8c0;
+  white-space: pre-wrap;
+}
+.chapter-empty { color: #8a7a60; text-align: center; padding: 40px 0; }
+.reading-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.reading-nav button {
+  padding: 6px 14px;
+  background: transparent;
+  border: 2px solid rgba(210, 170, 120, 0.35);
+  color: #c8a870;
+  font-family: 'Zpix';
+  font-size: 11px;
+  cursor: pointer;
+}
+.reading-nav button:disabled { opacity: 0.3; }
+.reading-chapter-indicator { color: #8a7a60; }
+.reading-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.reading-action-btn {
+  flex: 1;
+  padding: 8px;
+  background: rgba(210, 170, 120, 0.12);
+  border: 2px dashed rgba(210, 170, 120, 0.35);
+  color: #c8a870;
+  font-family: 'Zpix';
+  font-size: 11px;
+  cursor: pointer;
+}
+.reading-action-btn:active { background: rgba(210, 170, 120, 0.25); }
+
+.chapter-editor {
+  width: 100%;
+  min-height: 30vh;
+  background: rgba(210, 170, 120, 0.08);
+  border: 2px solid rgba(210, 170, 120, 0.3);
+  color: #e8d8c0;
+  font-family: inherit;
+  font-size: 13px;
+  padding: 10px;
+  margin-bottom: 8px;
+  resize: vertical;
+}
+
+.reading-notes { margin-top: 12px; }
+.notes-title { font-size: 12px; color: #c8a870; margin-bottom: 8px; }
+.note-item {
+  background: rgba(210, 170, 120, 0.12);
+  border-left: 3px solid rgba(210, 170, 120, 0.4);
+  padding: 8px 10px;
+  margin-bottom: 6px;
+}
+.note-quote { font-style: italic; color: #b8a880; margin-bottom: 4px; }
+.note-text { color: #e8d8c0; }
+
+.add-book-form { margin-top: 8px; }
+.tab-bar-add {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.add-tab {
+  flex: 1;
+  padding: 6px;
+  background: transparent;
+  border: 2px solid rgba(210, 170, 120, 0.25);
+  color: #8a7a60;
+  font-family: 'Zpix';
+  font-size: 11px;
+  cursor: pointer;
+}
+.add-tab.active {
+  background: rgba(210, 170, 120, 0.22);
+  color: #c8a870;
+  border-color: rgba(210, 170, 120, 0.5);
+}
+
+.chapter-list { margin-top: 12px; }
+.chapter-item {
+  padding: 10px;
+  background: rgba(210, 170, 120, 0.15);
+  border: 1px dashed rgba(210, 170, 120, 0.25);
+  margin-bottom: 4px;
+  color: #e8d8c0;
+  cursor: pointer;
+}
+
+/* ===== 删除按钮（通用小型） ===== */
+.delete-btn-small {
+  background: transparent;
+  border: 1px solid rgba(200, 120, 100, 0.3);
+  color: #b87a6a;
+  font-family: 'Zpix', monospace;
+  font-size: 10px;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.delete-btn-small:active {
+  background: rgba(200, 120, 100, 0.15);
+  border-color: rgba(200, 120, 100, 0.5);
+  color: #d48a6a;
+}
+
+/* 书籍卡片右侧改为纵向布局 */
+.book-card-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* 记账列表项加删除按钮 */
+.tally-item .delete-btn-small {
+  margin-left: 4px;
+}
