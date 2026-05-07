@@ -41,6 +41,20 @@ html, body {
   z-index: 0;
 }
 
+/* 子页面深棕背景 */
+body.sub-page-active #background {
+  opacity: 0 !important;
+}
+body.sub-page-active #bg-overlay {
+  background: transparent !important;
+}
+body.sub-page-active #weather-fx {
+  opacity: 0;
+}
+body.sub-page-active {
+  background-color: #1a1410;
+}
+
 #bg-overlay {
   position: fixed;
   top: 0;
@@ -918,21 +932,222 @@ select.setting-input {
 }
 .tally-save-btn:active { background: rgba(210, 170, 120, 0.25); }
 
+/* Tally tabs */
+.tally-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.tally-tab {
+  padding: 5px 16px;
+  border: 2px solid rgba(210, 170, 120, 0.25);
+  background: transparent;
+  color: #8a7a60;
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+.tally-tab.active {
+  background: rgba(210, 170, 120, 0.22);
+  color: #c8a870;
+  border-color: rgba(210, 170, 120, 0.5);
+}
+
+/* Category tag grid */
+.tally-cat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.tally-cat-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 2px solid rgba(210, 170, 120, 0.2);
+  background: transparent;
+  color: #8a7a60;
+  font-family: 'Zpix', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tally-cat-btn.active {
+  background: rgba(210, 170, 120, 0.2);
+  color: #e8d8c0;
+  border-color: rgba(210, 170, 120, 0.5);
+}
+
+/* Color dot */
+.cat-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+}
+
+/* Filter bar in list */
+.tally-filter-bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  -webkit-overflow-scrolling: touch;
+}
+.tally-filter-bar::-webkit-scrollbar { display: none; }
+.tally-filter-bar .filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Tally list items */
 .tally-item {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
   padding: 8px 10px;
   background: rgba(210, 170, 120, 0.15);
   border: 1px dashed rgba(210, 170, 120, 0.25);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
-.tally-type { font-family: 'Zpix'; font-size: 14px; }
+.tally-item.tally-date-gap {
+  margin-top: 10px;
+}
+.tally-type { font-family: 'Zpix'; font-size: 13px; white-space: nowrap; }
 .tally-type.income { color: #8abd6a; }
 .tally-type.expense { color: #d48a6a; }
-.tally-desc { font-size: 11px; color: #b8a880; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tally-date { font-size: 10px; color: #8a7a60; }
+.tally-desc { font-size: 11px; color: #b8a880; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tally-date { font-size: 10px; color: #8a7a60; white-space: nowrap; }
 .tally-empty, .tally-error { text-align: center; color: #8a7a60; padding: 30px 0; }
+
+/* Stats view */
+.tally-stats-mode {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.tally-stats-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.tally-nav-btn {
+  background: transparent;
+  border: 2px solid rgba(210, 170, 120, 0.3);
+  color: #c8a870;
+  font-family: 'Zpix', monospace;
+  font-size: 12px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.tally-nav-btn:active { background: rgba(210, 170, 120, 0.15); }
+#tally-stats-label {
+  font-family: 'Zpix', monospace;
+  font-size: 13px;
+  color: #e8c880;
+  letter-spacing: 2px;
+}
+.tally-stats-summary {
+  margin-bottom: 16px;
+}
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  padding: 12px;
+  background: rgba(210, 170, 120, 0.15);
+  border: 2px dashed rgba(210, 170, 120, 0.25);
+}
+.stats-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.stats-num {
+  font-family: 'Zpix', monospace;
+  font-size: 13px;
+  color: #e8d8c0;
+}
+.stats-num.income { color: #8abd6a; }
+.stats-num.expense { color: #d48a6a; }
+.stats-label {
+  font-size: 10px;
+  color: #8a7a60;
+  letter-spacing: 1px;
+}
+
+/* Chart */
+.tally-chart-area {
+  margin-bottom: 12px;
+}
+.tally-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  padding: 8px 4px;
+  background: rgba(210, 170, 120, 0.08);
+  border: 1px dashed rgba(210, 170, 120, 0.2);
+  overflow-x: auto;
+  min-height: 140px;
+}
+.chart-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+.chart-bar-wrap.year-bar {
+  flex: 1;
+  min-width: 0;
+}
+.chart-bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: 100%;
+  min-width: 4px;
+}
+.chart-seg {
+  width: 100%;
+  min-height: 1px;
+}
+.chart-x-label {
+  font-family: 'Zpix', monospace;
+  font-size: 8px;
+  color: #8a7a60;
+  margin-top: 2px;
+}
+
+/* Legend */
+.tally-stats-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 10px;
+  background: rgba(210, 170, 120, 0.1);
+  border: 1px dashed rgba(210, 170, 120, 0.2);
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.legend-name {
+  font-size: 10px;
+  color: #b8a880;
+}
+.legend-val {
+  font-size: 10px;
+  color: #e8d8c0;
+  font-family: 'Zpix', monospace;
+}
 
 /* ===== Phase 3 — 共读 ===== */
 .reading-filter-bar {
